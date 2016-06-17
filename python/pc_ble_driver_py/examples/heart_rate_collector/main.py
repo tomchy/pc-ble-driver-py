@@ -9,7 +9,7 @@
 
 import sys
 import time
-import Queue
+import queue
 import logging
 logging.basicConfig()
 
@@ -25,7 +25,7 @@ class HRCollector(BLEDriverObserver, BLEAdapterObserver):
     def __init__(self, adapter):
         super(HRCollector, self).__init__()
         self.adapter    = adapter
-        self.conn_q     = Queue.Queue()
+        self.conn_q     = queue.Queue()
         self.adapter.observer_register(self)
         self.adapter.driver.observer_register(self)
 
@@ -54,7 +54,7 @@ class HRCollector(BLEDriverObserver, BLEAdapterObserver):
 
 
     def on_gap_evt_connected(self, ble_driver, conn_handle, peer_addr, own_addr, role, conn_params):
-        print('New connection: {}'.format(conn_handle))
+        print(('New connection: {}'.format(conn_handle)))
         self.conn_q.put(conn_handle)
 
 
@@ -76,24 +76,24 @@ class HRCollector(BLEDriverObserver, BLEAdapterObserver):
 
         dev_name        = "".join(chr(e) for e in dev_name_list)
         address_string  = "".join("{0:02X}".format(b) for b in peer_addr.addr)
-        print('Received advertisment report, address: 0x{}, device_name: {}'.format(address_string,
-                                                                                    dev_name))
+        print(('Received advertisment report, address: 0x{}, device_name: {}'.format(address_string,
+                                                                                    dev_name)))
 
         if (dev_name == TARGET_DEV_NAME):
             self.adapter.connect(peer_addr)
 
 
     def on_notification(self, ble_adapter, conn_handle, uuid, data):
-        print('Connection: {}, {} = {}'.format(conn_handle, uuid, data))
+        print(('Connection: {}, {} = {}'.format(conn_handle, uuid, data)))
 
 
 def main(serial_port):
-    print('Serial port used: {}'.format(serial_port))
+    print(('Serial port used: {}'.format(serial_port)))
     driver    = BLEDriver(serial_port=serial_port)
     adapter   = BLEAdapter(driver)
     collector = HRCollector(adapter)
     collector.open()
-    for i in xrange(CONNECTIONS):
+    for i in range(CONNECTIONS):
         collector.connect_and_discover()
     time.sleep(30)
     print('Closing')
@@ -103,11 +103,11 @@ def main(serial_port):
 def item_choose(item_list):
     for i, it in enumerate(item_list):
         print('\t{} : {}'.format(i, it))
-    print ' '
+    print(' ')
 
     while True:
         try:
-            choice = int(raw_input('Enter your choice: '))
+            choice = int(input('Enter your choice: '))
             if ((choice >= 0) and (choice < len(item_list))):
                 break
         except Exception:
