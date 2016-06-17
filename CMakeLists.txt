@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.3)
 
 # Name of the project
 project (pc-ble-driver-py)
-
+set(PY3 True)
 set(PC_BLE_DRIVER_PY_OUTDIR ${CMAKE_BINARY_DIR}/outdir)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PC_BLE_DRIVER_PY_OUTDIR})
@@ -27,7 +27,11 @@ include_directories(${PC_BLE_DRIVER_INCLUDE_DIR})
 find_package(SWIG REQUIRED)
 include(${SWIG_USE_FILE})
 
-find_package(PythonLibs 3.4 REQUIRED)
+if(${PY3})
+    find_package(PythonLibs 3.4 REQUIRED)
+else()
+    find_package(PythonLibs 2.7 REQUIRED)
+endif()
 
 set(PYTHON_MODULE ${PC_BLE_DRIVER_PROJECT_NAME})
 
@@ -36,7 +40,9 @@ include_directories(${PYTHON_INCLUDE_PATH})
 set(SWIG_I_FILE ${CMAKE_CURRENT_LIST_DIR}/swig/pc_ble_driver.i)
 
 set_property(SOURCE  ${SWIG_I_FILE} APPEND PROPERTY SWIG_FLAGS "-threads")
-set_property(SOURCE  ${SWIG_I_FILE} APPEND PROPERTY SWIG_FLAGS "-py3")
+if(${PY3})
+    set_property(SOURCE  ${SWIG_I_FILE} APPEND PROPERTY SWIG_FLAGS "-py3")
+endif()
 set_property(SOURCE  ${SWIG_I_FILE} APPEND PROPERTY SWIG_FLAGS "-DPC_BLE_DRIVER_STATIC")
 
 # Use release lib of Python even when building with DEBUG
