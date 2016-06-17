@@ -3,7 +3,7 @@ try:
 except ImportError:
     import Queue as queue
 import logging
-from .ble_driver     import *
+from ble_driver     import *
 
 logger  = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
