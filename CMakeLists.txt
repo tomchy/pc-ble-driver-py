@@ -2,7 +2,10 @@ cmake_minimum_required(VERSION 3.3)
 
 # Name of the project
 project (pc-ble-driver-py)
-set(PY3 True)
+
+# Set True to build for python 3.4
+set(PY3 False)
+
 set(PC_BLE_DRIVER_PY_OUTDIR ${CMAKE_BINARY_DIR}/outdir)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PC_BLE_DRIVER_PY_OUTDIR})
