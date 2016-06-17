@@ -6,7 +6,6 @@ import logging
 import traceback
 from enum       import Enum
 from functools  import wraps
-from types      import NoneType
 
 import sys
 import ctypes
@@ -63,7 +62,7 @@ logger.info('Shared library folder: {}'.format(shlib_dir))
 
 sys.path.append(shlib_dir)
 import pc_ble_driver as driver
-from . import ble_driver_types as util
+import ble_driver_types as util
 
 class NordicSemiException(Exception):
     """
@@ -817,7 +816,7 @@ class BLEDriver(object):
 
     @NordicSemiErrorCheck
     def ble_gattc_prim_srvc_disc(self, conn_handle, srvc_uuid, start_handle):
-        assert isinstance(srvc_uuid, (BLEUUID, NoneType)), 'Invalid argument type'
+        assert isinstance(srvc_uuid, (BLEUUID, type(None))), 'Invalid argument type'
         return driver.sd_ble_gattc_primary_services_discover(self.rpc_adapter,
                                                              conn_handle,
                                                              start_handle,
