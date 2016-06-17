@@ -10,7 +10,7 @@
 try:
     import pc_ble_driver    as ble_driver
 except Exception:
-    print "Error. No ble_driver module found."
+    print("Error. No ble_driver module found.")
 
 
 UNIT_0_625_MS = 625  # Unit used for scanning and advertising parameters

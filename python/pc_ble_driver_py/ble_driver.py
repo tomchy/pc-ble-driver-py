@@ -1,4 +1,7 @@
-import Queue
+try:
+    import queue
+except ImportError:
+    import Queue as queue
 import logging
 import traceback
 from enum       import Enum
@@ -60,7 +63,7 @@ logger.info('Shared library folder: {}'.format(shlib_dir))
 
 sys.path.append(shlib_dir)
 import pc_ble_driver as driver
-import ble_driver_types as util
+from . import ble_driver_types as util
 
 class NordicSemiException(Exception):
     """
@@ -627,7 +630,7 @@ class BLEDriverObserver(object):
 class BLEDriver(object):
     def __init__(self, serial_port, baud_rate=115200):
         super(BLEDriver, self).__init__()
-        self.evts_q         = Queue.Queue()
+        self.evts_q         = queue.Queue()
         self.observers      = list()
         phy_layer           = driver.sd_rpc_physical_layer_create_uart(serial_port,
                                                                        baud_rate,
@@ -687,7 +690,7 @@ class BLEDriver(object):
                 pulled_evt = self.evts_q.get(timeout=timeout)
                 if pulled_evt == evt:
                     break
-            except Queue.Empty:
+            except queue.Empty:
                 raise NordicSemiException("Wait for event timed out, expected event: {}".format(evt))
 
 

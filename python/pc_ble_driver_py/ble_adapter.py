@@ -1,6 +1,9 @@
-import Queue
+try:
+    import queue
+except ImportError:
+    import Queue as queue
 import logging
-from ble_driver     import *
+from .ble_driver     import *
 
 logger  = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -8,9 +11,9 @@ logger.setLevel(logging.DEBUG)
 class DbConnection(object):
     def __init__(self):
         self.services    = list()
-        self.serv_disc_q = Queue.Queue()
-        self.char_disc_q = Queue.Queue()
-        self.desc_disc_q = Queue.Queue()
+        self.serv_disc_q = queue.Queue()
+        self.char_disc_q = queue.Queue()
+        self.desc_disc_q = queue.Queue()
 
 
     def get_char_value_handle(self, uuid):
@@ -118,7 +121,7 @@ class BLEAdapter(BLEDriverObserver):
             while True:
                 chars = self.db_conns[conn_handle].char_disc_q.get(timeout=5)
                 if chars:
-                    map(s.char_add, chars)
+                    list(map(s.char_add, chars))
                 else:
                     break
 
