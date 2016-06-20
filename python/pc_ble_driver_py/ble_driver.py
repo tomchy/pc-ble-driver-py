@@ -1,11 +1,45 @@
-try:
-    import queue
-except ImportError:
-    import Queue as queue
+#
+# Copyright (c) 2016 Nordic Semiconductor ASA
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without modification,
+# are permitted provided that the following conditions are met:
+#
+#   1. Redistributions of source code must retain the above copyright notice, this
+#   list of conditions and the following disclaimer.
+#
+#   2. Redistributions in binary form must reproduce the above copyright notice, this
+#   list of conditions and the following disclaimer in the documentation and/or
+#   other materials provided with the distribution.
+#
+#   3. Neither the name of Nordic Semiconductor ASA nor the names of other
+#   contributors to this software may be used to endorse or promote products
+#   derived from this software without specific prior written permission.
+#
+#   4. This software must only be used in or with a processor manufactured by Nordic
+#   Semiconductor ASA, or in or with a processor manufactured by a third party that
+#   is used in combination with a processor manufactured by Nordic Semiconductor.
+#
+#   5. Any software provided in binary or object form under this license must not be
+#   reverse engineered, decompiled, modified and/or disassembled.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
 import logging
 import traceback
 from enum       import Enum
 from functools  import wraps
+from wrapt      import synchronized
+from threading  import Lock
 
 import sys
 import ctypes
@@ -246,10 +280,10 @@ class BLEGapAddr(object):
 
 
     def to_c(self):
-        self.__addr_array   = util.list_to_uint8_array(self.addr)
-        addr                = driver.ble_gap_addr_t()
-        addr.addr_type      = self.addr_type.value
-        addr.addr           = self.__addr_array.cast()
+        addr_array      = util.list_to_uint8_array(self.addr)
+        addr            = driver.ble_gap_addr_t()
+        addr.addr_type  = self.addr_type.value
+        addr.addr       = addr_array.cast()
         return addr
 
 
@@ -564,20 +598,13 @@ class SerialPortDescriptor(object):
 
     @classmethod
     def from_c(cls, org):
-        _port = SerialPortDescriptor.to_string(org.port)
-        _manufacturer = SerialPortDescriptor.to_string(org.manufacturer)
-        _serial_number = SerialPortDescriptor.to_string(org.serialNumber)
-        _pnp_id = SerialPortDescriptor.to_string(org.pnpId)
-        _location_id = SerialPortDescriptor.to_string(org.locationId)
-        _vendor_id = SerialPortDescriptor.to_string(org.vendorId)
-        _product_id = SerialPortDescriptor.to_string(org.productId)
-        return cls(port = _port,
-                   manufacturer = _manufacturer,
-                   serial_number = _serial_number,
-                   pnp_id = _pnp_id,
-                   location_id = _location_id,
-                   vendor_id = _vendor_id,
-                   product_id = _product_id)
+        return cls(port = org.port,
+                   manufacturer = org.manufacturer,
+                   serial_number = org.serialNumber,
+                   pnp_id = org.pnpId,
+                   location_id = org.locationId,
+                   vendor_id = org.vendorId,
+                   product_id = org.productId)
 
 class BLEDriverObserver(object):
     def __init__(self, *args, **kwargs):
@@ -627,9 +654,10 @@ class BLEDriverObserver(object):
 
 
 class BLEDriver(object):
+    observer_lock   = Lock()
+    api_lock        = Lock()
     def __init__(self, serial_port, baud_rate=115200):
         super(BLEDriver, self).__init__()
-        self.evts_q         = queue.Queue()
         self.observers      = list()
         phy_layer           = driver.sd_rpc_physical_layer_create_uart(serial_port,
                                                                        baud_rate,
@@ -640,6 +668,7 @@ class BLEDriver(object):
         self.rpc_adapter    = driver.sd_rpc_adapter_create(transport_layer)
 
 
+    @synchronized(api_lock)
     @classmethod
     def enum_serial_ports(cls):
         MAX_SERIAL_PORTS = 64
@@ -655,14 +684,12 @@ class BLEDriver(object):
 
         dlen = driver.uint32_value(arr_len)
 
-        descs = util.serial_port_desc_array_to_list(c_desc_arr, dlen)
-        res = []
-        for d in descs:
-            res.append(SerialPortDescriptor.from_c(d))
-        return res
+        descs   = util.serial_port_desc_array_to_list(c_desc_arr, dlen)
+        return map(SerialPortDescriptor.from_c, descs)
 
 
     @NordicSemiErrorCheck
+    @synchronized(api_lock)
     def open(self):
         return driver.sd_rpc_open(self.rpc_adapter,
                                   self.status_handler,
@@ -671,26 +698,19 @@ class BLEDriver(object):
 
 
     @NordicSemiErrorCheck
+    @synchronized(api_lock)
     def close(self):
         return driver.sd_rpc_close(self.rpc_adapter)
 
 
+    @synchronized(observer_lock)
     def observer_register(self, observer):
         self.observers.append(observer)
 
 
+    @synchronized(observer_lock)
     def observer_unregister(self, observer):
         self.observers.remove(observer)
-
-
-    def wait_for_event(self, evt, timeout=20):
-        while True:
-            try:
-                pulled_evt = self.evts_q.get(timeout=timeout)
-                if pulled_evt == evt:
-                    break
-            except queue.Empty:
-                raise NordicSemiException("Wait for event timed out, expected event: {}".format(evt))
 
 
     def ble_enable_params_setup(self):
@@ -720,6 +740,7 @@ class BLEDriver(object):
 
 
     @NordicSemiErrorCheck
+    @synchronized(api_lock)
     def ble_enable(self, ble_enable_params=None):
         if not ble_enable_params:
             ble_enable_params = self.ble_enable_params_setup()
@@ -728,6 +749,7 @@ class BLEDriver(object):
 
 
     @NordicSemiErrorCheck
+    @synchronized(api_lock)
     def ble_gap_adv_start(self, adv_params=None):
         if not adv_params:
             adv_params = self.adv_params_setup()
@@ -736,11 +758,13 @@ class BLEDriver(object):
 
 
     @NordicSemiErrorCheck
+    @synchronized(api_lock)
     def ble_gap_adv_stop(self):
         return driver.sd_ble_gap_adv_stop()
 
 
     @NordicSemiErrorCheck
+    @synchronized(api_lock)
     def ble_gap_scan_start(self, scan_params=None):
         if not scan_params:
             scan_params = self.scan_params_setup()
@@ -749,11 +773,13 @@ class BLEDriver(object):
 
 
     @NordicSemiErrorCheck
+    @synchronized(api_lock)
     def ble_gap_scan_stop(self):
         return driver.sd_ble_gap_scan_stop()
 
 
     @NordicSemiErrorCheck
+    @synchronized(api_lock)
     def ble_gap_connect(self, address, scan_params=None, conn_params=None):
         assert isinstance(address, BLEGapAddr), 'Invalid argument type'
 
@@ -772,6 +798,7 @@ class BLEDriver(object):
 
 
     @NordicSemiErrorCheck
+    @synchronized(api_lock)
     def ble_gap_disconnect(self, conn_handle, hci_status_code = BLEHci.remote_user_terminated_connection):
         assert isinstance(hci_status_code, BLEHci), 'Invalid argument type'
         return driver.sd_ble_gap_disconnect(self.rpc_adapter, 
@@ -780,6 +807,7 @@ class BLEDriver(object):
 
 
     @NordicSemiErrorCheck
+    @synchronized(api_lock)
     def ble_gap_adv_data_set(self, adv_data = BLEAdvData(), scan_data = BLEAdvData()):
         assert isinstance(adv_data, BLEAdvData),    'Invalid argument type'
         assert isinstance(scan_data, BLEAdvData),   'Invalid argument type'
@@ -794,19 +822,21 @@ class BLEDriver(object):
 
 
     @NordicSemiErrorCheck
+    @synchronized(api_lock)
     def ble_vs_uuid_add(self, uuid):
         assert isinstance(uuid, BLEUUID), 'Invalid argument type'
         uuid_type = driver.new_uint8()
 
         err_code = driver.sd_ble_uuid_vs_add(self.rpc_adapter,
-                                                    uuid.uuid128_to_c(),
-                                                    uuid_type)
+                                             uuid.uuid128_to_c(),
+                                             uuid_type)
         if err_code == driver.NRF_SUCCESS:
             uuid.type = driver.uint8_value(uuid_type)
         return err_code
 
 
     @NordicSemiErrorCheck
+    @synchronized(api_lock)
     def ble_gattc_write(self, conn_handle, write_params):
         assert isinstance(write_params, BLEGattcWriteParams), 'Invalid argument type'
         return driver.sd_ble_gattc_write(self.rpc_adapter,
@@ -815,6 +845,7 @@ class BLEDriver(object):
 
 
     @NordicSemiErrorCheck
+    @synchronized(api_lock)
     def ble_gattc_prim_srvc_disc(self, conn_handle, srvc_uuid, start_handle):
         assert isinstance(srvc_uuid, (BLEUUID, type(None))), 'Invalid argument type'
         return driver.sd_ble_gattc_primary_services_discover(self.rpc_adapter,
@@ -824,6 +855,7 @@ class BLEDriver(object):
 
 
     @NordicSemiErrorCheck
+    @synchronized(api_lock)
     def ble_gattc_char_disc(self, conn_handle, start_handle, end_handle):
         handle_range                = driver.ble_gattc_handle_range_t()
         handle_range.start_handle   = start_handle
@@ -834,6 +866,7 @@ class BLEDriver(object):
 
 
     @NordicSemiErrorCheck
+    @synchronized(api_lock)
     def ble_gattc_desc_disc(self, conn_handle, start_handle, end_handle):
         handle_range                = driver.ble_gattc_handle_range_t()
         handle_range.start_handle   = start_handle
@@ -851,6 +884,7 @@ class BLEDriver(object):
         pass
 
 
+    @synchronized(observer_lock)
     def ble_evt_handler(self, adapter, ble_event):
         evt_id = None
         try:
@@ -858,7 +892,6 @@ class BLEDriver(object):
         except:
             logger.error('Invalid received BLE event id: 0x{:02X}'.format(ble_event.header.evt_id))
             return
-        self.evts_q.put(evt_id)
         try:
             if evt_id == BLEEvtID.gap_evt_connected:
                 connected_evt = ble_event.evt.gap_evt.params.connected
