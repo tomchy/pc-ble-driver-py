@@ -1,8 +1,11 @@
 # Python bindings for the nRF5 Bluetooth Low Energy GAP/GATT driver
 
+[![Latest version](https://img.shields.io/pypi/v/pc-ble-driver-py.svg)](https://pypi.python.org/pypi/pc-ble-driver-py)
+[![License](https://img.shields.io/pypi/l/pc-ble-driver-py.svg)](https://pypi.python.org/pypi/pc-ble-driver-py)
+
 ## Introduction
 pc-ble-driver-py is a serialization library over serial port that provides Python bindings
-for the [pc-ble-driver  library](https://github.com/NordicSemiconductor/pc-ble-driver) library.
+for the [pc-ble-driver  library](https://github.com/NordicSemiconductor/pc-ble-driver).
 
 pc-ble-driver-py depends on the pc-ble-driver repository referrenced as a submodule.
 
@@ -16,11 +19,19 @@ You can find additional information here:
 
 [Hardware setup](https://github.com/NordicSemiconductor/pc-ble-driver/tree/self_contained_driver#hardware-setup)
 
+**Note**: On Windows, the runtime libraries targeted when building the library must be present when running code using the library. If you get an error about missing msvcr120.dll or msvcr140.dll, please install the redistributable installer for [Visual Studio 2013](https://www.microsoft.com/en-us/download/details.aspx?id=40784) or [Visual Studio 2015](https://www.microsoft.com/en-us/download/details.aspx?id=48145).
+
 ## License
 
 See the [license file](LICENSE) for details.
 
-# Compiling
+## Installing from PyPI
+
+To install the latest published version from the Python Package Index simply type:
+
+    pip install pc-ble-driver-py
+
+## Compiling from source
 
 Before building pc-ble-driver-py you will need to have Boost installed and some of its libraries statically compiled.
 To install and compile Boost, please follow the instructions here:
@@ -31,7 +42,7 @@ Assuming that you have built the Boost libraries and installed the tools require
 
 **Note**: Make sure you have built the Boost libraries for the architecture (32 or 64-bit) required by your Python installation.
 
-## Dependencies
+### Dependencies
 
 To build this project you will need the following tools:
 
@@ -42,7 +53,7 @@ To build this project you will need the following tools:
 
 See the following sections for platform-specific instructions on the installation of the dependencies.
 
-### Windows 
+#### Windows 
 
 * Install the latest CMake stable release by downloading the Windows Installer from:
 
@@ -72,7 +83,7 @@ Open a Microsoft Visual Studio Command Prompt and issue the following from the r
 
     > cd build
     > cmake -G "Visual Studio XX <Win64>" <-DBOOST_LIBRARYDIR="<Boost libs path>>" ..
-    > msbuild ALL_BUILD.vcxproj /p:Configuration=<CFG>
+    > msbuild ALL_BUILD.vcxproj </p:Configuration=<CFG>>
 
 **Note**: Select Visual Sutio 12 or 14 `-G "Visual Studio XX"` option.
 
@@ -84,7 +95,7 @@ Open a Microsoft Visual Studio Command Prompt and issue the following from the r
 
 The results of the build will be placed in `build\outdir` and the distributable files will be copied to `python\pc_ble_driver_py\lib\win\x86_<arch>`.
 
-#### Examples
+##### Examples
 
 Building for 32-bit Python with 64-bit Visual Studio 15:
 
@@ -92,9 +103,9 @@ Building for 32-bit Python with 64-bit Visual Studio 15:
 
 Building for 64-bit Python with 64-bit Visual Studio 15 pointing to a 64-bit Boost build:
 
-    > cmake -G "Visual Studio 14 Win64" -DBOOST_LIBRARYDIR="c:\boost\boost_1_61_0\stage\x64"..
+    > cmake -G "Visual Studio 14 Win64" -DBOOST_LIBRARYDIR="c:\boost\boost_1_61_0\stage\x64" ..
 
-### Ubuntu Linux
+#### Ubuntu Linux
 
 Install the required packages to build the bindings:
 
@@ -103,7 +114,7 @@ Install the required packages to build the bindings:
 Then change to the root folder of the repository and issue the following commands:
 
     $ cd build
-    > cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE= <build_type> <-DARCH=<x86_32,x86_64>> <-DBOOST_LIBRARYDIR="<Boost libs path>>" ..
+    > cmake -G "Unix Makefiles" <-DCMAKE_BUILD_TYPE=<build_type>> <-DARCH=<x86_32,x86_64>> <-DBOOST_LIBRARYDIR="<Boost libs path>>" ..
     $ make
 
 **Note**: Optionally Select the build configuration with the `-DCMAKE_BUILD_TYPE` option. Typically `Debug`, `Release`, `MinSizeRel` and `RelWithDebInfo` are available.
@@ -114,7 +125,7 @@ Then change to the root folder of the repository and issue the following command
 
 The results of the build will be placed in `build/outdir` and the distributable files will be copied to `python/pc_ble_driver_py/lib/linux\x86_<arch>`.
 
-### macOS (OS X) 10.11 and later
+#### macOS (OS X) 10.11 and later
 
 Install cmake and swig with Homebrew with the `brew` command on a terminal:
 

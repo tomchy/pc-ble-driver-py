@@ -55,8 +55,8 @@ setup(
     version = pc_ble_driver_py.__version__,
     
     description = 'Python bindings for the Nordic pc-ble-driver SoftDevice serialization library',
-    long_description = 'A Python interface and library for pc-ble-driver. Since the shared libraries are 32-bit applications, this package can only be used with 32-bit Python 2.7.x',
-    
+    long_description = 'A Python interface and library for pc-ble-driver. This allows Python applications to interface with a Nordic Semiconductor IC (both nRF51 and nRF52 series) over a serial port to obtain access to the full serialized SoftDevice API. This package is compatible with 2.7 Python on both 32 and 64-bit architectures on Windows, Linux and macOS (OS X).',
+
     url = 'https://github.com/NordicSemiconductor/pc-ble-driver-py',
         
     author = 'Nordic Semiconductor ASA',
@@ -69,7 +69,7 @@ setup(
 
         'Intended Audience :: Developers',
         
-        'Operating System :: MacOS :: MacOSX',
+        'Operating System :: MacOS',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX :: Linux',
 
@@ -88,6 +88,12 @@ setup(
      
     packages = find_packages(),
     package_data = { 
+                'pc_ble_driver_py.lib.win.x86_32': ['*.pyd', '*.dll', '*.txt'],
+                'pc_ble_driver_py.lib.win.x86_64': ['*.pyd', '*.dll', '*.txt'],
+                'pc_ble_driver_py.lib.linux.x86_32': ['*.so', '*.txt'],
+                'pc_ble_driver_py.lib.linux.x86_64': ['*.so', '*.txt'],
+                'pc_ble_driver_py.lib.macos_osx': ['*.so', '*.dylib', '*.txt'],
+                'pc_ble_driver_py.hex': ['*.hex', '*.patch']
     }
     
     )

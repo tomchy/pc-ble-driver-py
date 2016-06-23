@@ -34,9 +34,36 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-"""
-Package marker file.
 
-"""
+class NordicSemiException(Exception):
+    """
+    Exception used as based exception for other exceptions defined in this package.
+    """
+    pass
 
-__version__ = "0.2.0"
+
+class NotImplementedException(NordicSemiException):
+    """
+    Exception used when functionality has not been implemented yet.
+    """
+    pass
+
+
+class InvalidArgumentException(NordicSemiException):
+    """"
+    Exception used when a argument is of wrong type
+    """
+    pass
+
+class MissingArgumentException(NordicSemiException):
+    """"
+    Exception used when a argument is missing
+    """
+    pass
+
+
+class IllegalStateException(NordicSemiException):
+    """"
+    Exception used when program is in an illegal state
+    """
+    pass

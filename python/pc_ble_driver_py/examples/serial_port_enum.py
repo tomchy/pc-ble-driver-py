@@ -34,9 +34,35 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-"""
-Package marker file.
 
-"""
+import sys
+from pc_ble_driver_py.ble_driver import BLEDriver, SerialPortDescriptor, Flasher
 
-__version__ = "0.2.0"
+def main(port):
+    descs = BLEDriver.enum_serial_ports()
+    print("enum_serial_ports: {} serial ports found".format(len(descs)))
+    for i, d in enumerate(descs):
+        print("\nSerial port #{}:".format(i))
+        print("|")
+        print("|-  Port: \"{}\"".format(d.port))
+        print("|-  Manufacturer: \"{}\"".format(d.manufacturer))
+        print("|-  Serial Number: \"{}\"".format(d.serial_number))
+        print("|-  PnP ID: \"{}\"".format(d.pnp_id))
+        print("|-  Location ID: \"{}\"".format(d.location_id))
+        print("|-  Vendor ID: \"{}\"".format(d.vendor_id))
+        print("|_  Product ID: \"{}\"".format(d.product_id))
+    if port != None:
+        flasher = Flasher(serial_port=port) 
+        if flasher.fw_check():
+            print("Port \"{}\" already flashed with connectivity firmware".format(port))
+        else:
+            print("Flashing Port \"{}\"".format(port))
+            flasher.fw_flash()
+            print("Firmware flashed")
+
+if __name__ == "__main__":
+    port = None
+    if len(sys.argv) == 2:
+        port = sys.argv[1]
+    main(port)
+    quit()

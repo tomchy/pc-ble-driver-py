@@ -34,14 +34,6 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Copyright (c) 2015 Nordic Semiconductor. All Rights Reserved.
-#
-# The information contained herein is property of Nordic Semiconductor ASA.
-# Terms and conditions of usage are described in detail in NORDIC
-# SEMICONDUCTOR STANDARD SOFTWARE LICENSE AGREEMENT.
-# Licensees are granted free, non-transferable use of the information. NO
-# WARRANTY of ANY KIND is provided. This heading must NOT be removed from
-# the file.
 
 import sys
 import time
@@ -49,9 +41,8 @@ import queue
 import logging
 logging.basicConfig()
 
-sys.path.append('../../')
-from ble_driver     import *
-from ble_adapter    import *
+from pc_ble_driver_py.ble_driver     import *
+from pc_ble_driver_py.ble_adapter    import *
 
 TARGET_DEV_NAME = "Nordic_HRM"
 CONNECTIONS     = 2
@@ -125,7 +116,7 @@ class HRCollector(BLEDriverObserver, BLEAdapterObserver):
 
 def main(serial_port):
     print(('Serial port used: {}'.format(serial_port)))
-    driver    = BLEDriver(serial_port=serial_port)
+    driver    = BLEDriver(serial_port=serial_port, auto_flash=True)
     adapter   = BLEAdapter(driver)
     collector = HRCollector(adapter)
     collector.open()
