@@ -41,8 +41,8 @@ except ImportError:
 import logging
 import wrapt
 from threading  import Condition, Lock
-from ble_driver import *
-from exceptions import NordicSemiException
+from .ble_driver import *
+from .exceptions import NordicSemiException
 
 logger  = logging.getLogger(__name__)
 

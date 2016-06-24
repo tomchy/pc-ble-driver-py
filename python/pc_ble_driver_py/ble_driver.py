@@ -96,8 +96,8 @@ logger.info('Shared library folder: {}'.format(shlib_dir))
 
 sys.path.append(shlib_dir)
 import pc_ble_driver as driver
-import ble_driver_types as util
-from exceptions import NordicSemiException
+from . import ble_driver_types as util
+from .exceptions import NordicSemiException
 
 
 def NordicSemiErrorCheck(wrapped=None, expected = driver.NRF_SUCCESS):
