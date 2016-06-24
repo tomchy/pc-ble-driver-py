@@ -187,9 +187,8 @@ class BLEAdapter(BLEDriverObserver):
             self.driver.ble_gattc_char_disc(conn_handle, s.start_handle, s.end_handle)
             while True:
                 response = self.evt_sync[conn_handle].wait(evt = BLEEvtID.gattc_evt_char_disc_rsp)
-
-                    list(map(s.char_add, chars))
-                    map(s.char_add, response['characteristics'])
+                if response['status'] == BLEGattStatusCode.success:
+                    list(map(s.char_add, response['characteristics']))
                 elif response['status'] == BLEGattStatusCode.attribute_not_found:
                     break
                 else:

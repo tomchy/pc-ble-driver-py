@@ -676,7 +676,7 @@ class Flasher(object):
                 if is_exe(exe_file):
                     return exe_file
 
-   	    return None
+        return None
 
     NRFJPROG = 'nrfjprog'
     def __init__(self, serial_port = None, snr = None, family = 'NRF51'):
@@ -723,7 +723,7 @@ class Flasher(object):
 
         result = list()
         for line in data.splitlines():
-            line = re.sub(r"(^.*:)|(\|.*$)", '', line)
+            line = re.sub(r"(^.*:)|(\|.*$)", '', line.decode())
             result.extend([int(i, 16) for i in line.split()])
         return result
 
@@ -806,7 +806,7 @@ class BLEDriver(object):
         dlen = driver.uint32_value(arr_len)
 
         descs   = util.serial_port_desc_array_to_list(c_desc_arr, dlen)
-        return map(SerialPortDescriptor.from_c, descs)
+        return list(map(SerialPortDescriptor.from_c, descs))
 
 
     @NordicSemiErrorCheck
