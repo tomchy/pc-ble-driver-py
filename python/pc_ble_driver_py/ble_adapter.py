@@ -47,11 +47,12 @@ from .exceptions import NordicSemiException
 logger  = logging.getLogger(__name__)
 
 class DbConnection(object):
-    def __init__(self):
+    def __init__(self, vs_uuids=None):
         self.services    = list()
         self.serv_disc_q = queue.Queue()
         self.char_disc_q = queue.Queue()
         self.desc_disc_q = queue.Queue()
+        self.vs_uuids = vs_uuids
 
 
     def get_char_value_handle(self, uuid):
@@ -70,8 +71,17 @@ class DbConnection(object):
     def get_cccd_handle(self, uuid):
         if isinstance(uuid, BLEUUID):
             uuid = uuid.value
-
+            uuid_type = uuid.type
+        if isinstance(uuid.value, list):
+            logger.error(self.vs_uuids)
+            tmp = uuid.value[:]
+            tmp[2] = 0
+            tmp[3] = 0
+            uuid_type = self.vs_uuids[tuple(tmp)]
+            uuid = uuid.value[2] << 8 | uuid.value[3]
         for s in self.services:
+            logger.error("{},{},{}".format(s, s.uuid, s.uuid.type))
+        for s in [x for x in self.services if x.uuid.type == uuid_type]:
             for c in s.chars:
                 if c.uuid.value == uuid:
                     for d in c.descs:
@@ -151,6 +161,9 @@ class BLEAdapter(BLEDriverObserver):
                                     conn_params = conn_params)
         self.conn_in_progress = True
 
+    def disconnect(self, conn_handle):
+        self.driver.ble_gap_disconnect(conn_handle)
+
 
     @wrapt.synchronized(observer_lock)
     def observer_register(self, observer):
@@ -220,6 +233,24 @@ class BLEAdapter(BLEDriverObserver):
 
 
     @NordicSemiErrorCheck(expected = BLEGattStatusCode.success)
+    def disable_notification(self, conn_handle, uuid):
+        cccd_list = [0, 0]
+
+        handle = self.db_conns[conn_handle].get_cccd_handle(uuid)
+        if handle == None:
+            raise NordicSemiException('CCCD not found')
+
+        write_params = BLEGattcWriteParams(BLEGattWriteOperation.write_req,
+                                           BLEGattExecWriteFlag.unused,
+                                           handle,
+                                           cccd_list,
+                                           0)
+
+        self.driver.ble_gattc_write(conn_handle, write_params)
+        result = self.evt_sync[conn_handle].wait(evt = BLEEvtID.gattc_evt_write_rsp)
+        return result['status']
+
+    @NordicSemiErrorCheck(expected = BLEGattStatusCode.success)
     def enable_notification(self, conn_handle, uuid):
         cccd_list = [1, 0]
 
@@ -267,7 +298,7 @@ class BLEAdapter(BLEDriverObserver):
 
 
     def on_gap_evt_connected(self, ble_driver, conn_handle, peer_addr, own_addr, role, conn_params):
-        self.db_conns[conn_handle]  = DbConnection()
+        self.db_conns[conn_handle]  = DbConnection(self.driver.vs_uuids)
         self.evt_sync[conn_handle]  = EvtSync(events = BLEEvtID)
         self.conn_in_progress       = False
 

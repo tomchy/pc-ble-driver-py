@@ -52,6 +52,7 @@ import imp
 import importlib
 
 logger  = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 # Load pc_ble_driver
 
@@ -480,8 +481,8 @@ class BLEUUID(object):
         heart_rate          = 0x2A37
 
 
-    def __init__(self, value):
-        self.type   = driver.BLE_UUID_TYPE_BLE # can be overwrite by BLEDriver.ble_vs_uuid_add()
+    def __init__(self, value, uuid_type=driver.BLE_UUID_TYPE_BLE):
+        self.type   = uuid_type
 
         if isinstance(value, BLEUUID.Standard):
             self.value  = value
@@ -501,7 +502,7 @@ class BLEUUID(object):
 
     @classmethod
     def uuid_from_c(cls, uuid):
-        return cls(value = uuid.uuid)
+        return cls(value = uuid.uuid, uuid_type=uuid.type)
 
 
     def uuid128_to_c(self):
@@ -557,7 +558,10 @@ class BLECharacteristic(object):
 
 class BLEService(object):
     def __init__(self, uuid, start_handle, end_handle):
-        logger.debug('New service uuid: {}, start handle: {}, end handle: {}'.format(uuid, start_handle, end_handle))
+        if uuid.type == driver.BLE_UUID_TYPE_BLE:
+            logger.debug('New service uuid: {}, start handle: {}, end handle: {}'.format(uuid, start_handle, end_handle))
+        else:
+            logger.debug('New VS service uuid: {} (VS_id {}), start handle: {}, end handle: {}'.format(uuid, uuid.type, start_handle, end_handle))
         self.uuid           = uuid
         self.start_handle   = start_handle
         self.end_handle     = end_handle
@@ -766,6 +770,7 @@ class BLEDriver(object):
     def __init__(self, serial_port, baud_rate=115200, auto_flash=False):
         super(BLEDriver, self).__init__()
         self.observers = list()
+        self.vs_uuids = dict()
         if auto_flash:
             try:
                 flasher = Flasher(serial_port=serial_port)
@@ -953,6 +958,7 @@ class BLEDriver(object):
                                              uuid_type)
         if err_code == driver.NRF_SUCCESS:
             uuid.type = driver.uint8_value(uuid_type)
+            self.vs_uuids[tuple(uuid.value)] = driver.uint8_value(uuid_type)
         return err_code
 
 
