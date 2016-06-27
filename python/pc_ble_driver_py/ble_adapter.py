@@ -58,8 +58,14 @@ class DbConnection(object):
     def get_char_value_handle(self, uuid):
         if isinstance(uuid, BLEUUID):
             uuid = uuid.value
+        elif isinstance(uuid.value, list):
+            tmp = uuid.value[:]
+            tmp[2] = 0
+            tmp[3] = 0
+            uuid_type = self.vs_uuids[tuple(tmp)]
+            uuid = uuid.value[2] << 8 | uuid.value[3]
 
-        for s in self.services:
+        for s in [x for x in self.services if x.uuid.type == uuid_type]:
             for c in s.chars:
                 if c.uuid.value == uuid:
                     for d in c.descs:
@@ -72,15 +78,13 @@ class DbConnection(object):
         if isinstance(uuid, BLEUUID):
             uuid = uuid.value
             uuid_type = uuid.type
-        if isinstance(uuid.value, list):
-            logger.error(self.vs_uuids)
+        elif isinstance(uuid.value, list):
             tmp = uuid.value[:]
             tmp[2] = 0
             tmp[3] = 0
             uuid_type = self.vs_uuids[tuple(tmp)]
             uuid = uuid.value[2] << 8 | uuid.value[3]
-        for s in self.services:
-            logger.error("{},{},{}".format(s, s.uuid, s.uuid.type))
+
         for s in [x for x in self.services if x.uuid.type == uuid_type]:
             for c in s.chars:
                 if c.uuid.value == uuid:
@@ -295,6 +299,12 @@ class BLEAdapter(BLEDriverObserver):
                                            0)
         self.driver.ble_gattc_write(conn_handle, write_params)
         self.evt_sync[conn_handle].wait(evt = BLEEvtID.evt_tx_complete)
+    
+    def read(self, conn_handle, uuid, offset=0):
+        handle = self.db_conns[conn_handle].get_char_value_handle(uuid)
+        if handle == None:
+            raise NordicSemiException('Characteristic value handler not found')
+        self.driver.ble_gattc_read(conn_handle, handle, offset)
 
 
     def on_gap_evt_connected(self, ble_driver, conn_handle, peer_addr, own_addr, role, conn_params):

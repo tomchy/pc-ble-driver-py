@@ -52,7 +52,6 @@ import imp
 import importlib
 
 logger  = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 # Load pc_ble_driver
 
@@ -126,6 +125,7 @@ class BLEEvtID(Enum):
     gattc_evt_prim_srvc_disc_rsp    = driver.BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP
     gattc_evt_char_disc_rsp         = driver.BLE_GATTC_EVT_CHAR_DISC_RSP
     gattc_evt_desc_disc_rsp         = driver.BLE_GATTC_EVT_DESC_DISC_RSP
+    gattc_evt_read_rsp              = driver.BLE_GATTC_EVT_READ_RSP
 
 
 
@@ -359,10 +359,10 @@ class BLEAdvData(object):
         ble_adv_data    = cls()
         index           = 0
         while index < len(ad_list):
-            ad_len  = ad_list[index]
-            ad_type = ad_list[index + 1]
-            offset  = index + 2
             try:
+                ad_len  = ad_list[index]
+                ad_type = ad_list[index + 1]
+                offset  = index + 2
                 key                         = BLEAdvData.Types(ad_type)
                 ble_adv_data.records[key]   = ad_list[offset: offset + ad_len - 1]
             except ValueError:
@@ -643,6 +643,10 @@ class BLEDriverObserver(object):
     def on_gattc_evt_write_rsp(self, ble_driver, conn_handle, status, error_handle, attr_handle, write_op, offset, data):
         pass
 
+    
+    def on_gattc_evt_read_rsp(self, ble_driver, conn_handle, data, offset):
+        pass
+    
 
     def on_gattc_evt_hvx(self, ble_driver, conn_handle, status, error_handle, attr_handle, hvx_type, data):
         pass
@@ -961,6 +965,14 @@ class BLEDriver(object):
             self.vs_uuids[tuple(uuid.value)] = driver.uint8_value(uuid_type)
         return err_code
 
+    @NordicSemiErrorCheck
+    @wrapt.synchronized(api_lock)
+    def ble_gattc_read(self, conn_handle, attribute_handle, offset=0):
+        return driver.sd_ble_gattc_read(self.rpc_adapter,
+                                        conn_handle, 
+                                        attribute_handle,
+                                        offset)
+
 
     @NordicSemiErrorCheck
     @wrapt.synchronized(api_lock)
@@ -1082,6 +1094,16 @@ class BLEDriver(object):
                                                offset       = write_rsp_evt.offset,
                                                data         = util.uint8_array_to_list(write_rsp_evt.data,
                                                                                        write_rsp_evt.len))
+            elif evt_id == BLEEvtID.gattc_evt_read_rsp:
+                read_rsp_evt   = ble_event.evt.gattc_evt.params.read_rsp
+
+                for obs in self.observers:
+                    obs.on_gattc_evt_read_rsp(ble_driver  = self,
+                                              conn_handle  = ble_event.evt.gattc_evt.conn_handle,
+                                              data        = util.uint8_array_to_list(read_rsp_evt.data,
+                                                                                     read_rsp_evt.len),
+                                              offset      = read_rsp_evt.offset)
+
 
             elif evt_id == BLEEvtID.gattc_evt_hvx:
                 hvx_evt = ble_event.evt.gattc_evt.params.hvx
