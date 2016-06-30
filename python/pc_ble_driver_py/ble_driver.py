@@ -119,6 +119,7 @@ class BLEEvtID(Enum):
     gap_evt_disconnected            = driver.BLE_GAP_EVT_DISCONNECTED
     gap_evt_adv_report              = driver.BLE_GAP_EVT_ADV_REPORT
     gap_evt_timeout                 = driver.BLE_GAP_EVT_TIMEOUT
+    gap_evt_conn_param_update_request = driver.BLE_GAP_EVT_CONN_PARAM_UPDATE_REQUEST
     evt_tx_complete                 = driver.BLE_EVT_TX_COMPLETE
     gattc_evt_write_rsp             = driver.BLE_GATTC_EVT_WRITE_RSP
     gattc_evt_hvx                   = driver.BLE_GATTC_EVT_HVX
@@ -636,6 +637,10 @@ class BLEDriverObserver(object):
         pass
 
 
+    def on_gap_evt_conn_param_update_request(self, ble_driver, conn_handle, conn_params):
+        pass
+
+
     def on_evt_tx_complete(self, ble_driver, conn_handle, count):
         pass
 
@@ -880,6 +885,13 @@ class BLEDriver(object):
 
     @NordicSemiErrorCheck
     @wrapt.synchronized(api_lock)
+    def ble_gap_conn_param_reply(self, conn_handle, conn_params):
+        assert isinstance(conn_params, BLEGapConnParams), 'Invalid argument type'
+        return driver.sd_ble_gap_conn_param_update(self.rpc_adapter, conn_handle, conn_params.to_c())
+
+
+    @NordicSemiErrorCheck
+    @wrapt.synchronized(api_lock)
     def ble_gap_adv_start(self, adv_params=None):
         if not adv_params:
             adv_params = self.adv_params_setup()
@@ -1072,6 +1084,14 @@ class BLEDriver(object):
                                               rssi          = adv_report_evt.rssi,
                                               adv_type      = adv_type,
                                               adv_data      = BLEAdvData.from_c(adv_report_evt))
+
+            elif evt_id == BLEEvtID.gap_evt_conn_param_update_request:
+                conn_params = ble_event.evt.gap_evt.params.conn_param_update_request.conn_params
+
+                for obs in self.observers:
+                    obs.on_gap_evt_conn_param_update_request(ble_driver   = self,
+                                                             conn_handle  = ble_event.evt.common_evt.conn_handle,
+                                                             conn_params  = BLEGapConnParams.from_c(conn_params))
 
             elif evt_id == BLEEvtID.evt_tx_complete:
                 tx_complete_evt = ble_event.evt.common_evt.params.tx_complete

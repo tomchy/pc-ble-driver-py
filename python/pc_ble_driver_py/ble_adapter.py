@@ -317,6 +317,8 @@ class BLEAdapter(BLEDriverObserver):
         if src == BLEGapTimeoutSrc.conn:
             self.conn_in_progress = False
 
+    def on_gap_evt_conn_param_update_request(self, ble_driver, conn_handle, conn_params):
+        self.driver.ble_gap_conn_param_reply(conn_handle, conn_params)
 
     def on_evt_tx_complete(self, ble_driver, conn_handle, **kwargs):
         self.evt_sync[conn_handle].notify(evt = BLEEvtID.evt_tx_complete, data = kwargs)
