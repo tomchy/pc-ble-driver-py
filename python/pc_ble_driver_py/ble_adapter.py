@@ -125,7 +125,10 @@ class BLEAdapterObserver(object):
 
     def on_notification(self, ble_adapter, conn_handle, uuid, data):
         pass
-
+    
+    def on_conn_param_update_request(self, ble_adapter, conn_handle, conn_params):
+        # Default behaviour is to accept connection parameter update
+        ble_adapter.conn_param_update(conn_handle, conn_params)
 
 
 class BLEAdapter(BLEDriverObserver):
@@ -289,6 +292,9 @@ class BLEAdapter(BLEDriverObserver):
         if handle == None:
             raise NordicSemiException('Characteristic value handler not found')
         self.driver.ble_gattc_read(conn_handle, handle, offset)
+    
+    def conn_param_update(self, conn_handle, conn_params):
+        self.driver.ble_gap_conn_param_update(conn_handle, conn_params)
 
 
     def on_gap_evt_connected(self, ble_driver, conn_handle, peer_addr, own_addr, role, conn_params):
@@ -301,8 +307,6 @@ class BLEAdapter(BLEDriverObserver):
         if src == BLEGapTimeoutSrc.conn:
             self.conn_in_progress = False
 
-    def on_gap_evt_conn_param_update_request(self, ble_driver, conn_handle, conn_params):
-        self.driver.ble_gap_conn_param_reply(conn_handle, conn_params)
 
     def on_evt_tx_complete(self, ble_driver, conn_handle, **kwargs):
         self.evt_sync[conn_handle].notify(evt = BLEEvtID.evt_tx_complete, data = kwargs)
@@ -323,6 +327,12 @@ class BLEAdapter(BLEDriverObserver):
     def on_gattc_evt_desc_disc_rsp(self, ble_driver, conn_handle, **kwargs):
         self.evt_sync[conn_handle].notify(evt = BLEEvtID.gattc_evt_desc_disc_rsp, data = kwargs)
 
+    @wrapt.synchronized(observer_lock)
+    def on_gap_evt_conn_param_update_request(self, ble_driver, conn_handle, conn_params):
+        for obs in self.observers:
+            obs.on_conn_param_update_request(ble_adapter = self,
+                                             conn_handle = conn_handle, 
+                                             conn_params = conn_params)
 
     @wrapt.synchronized(observer_lock)
     def on_gattc_evt_hvx(self, ble_driver, conn_handle, status, error_handle, attr_handle, hvx_type, data):

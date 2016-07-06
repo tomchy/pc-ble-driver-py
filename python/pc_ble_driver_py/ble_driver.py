@@ -120,6 +120,7 @@ class BLEEvtID(Enum):
     gap_evt_adv_report              = driver.BLE_GAP_EVT_ADV_REPORT
     gap_evt_timeout                 = driver.BLE_GAP_EVT_TIMEOUT
     gap_evt_conn_param_update_request = driver.BLE_GAP_EVT_CONN_PARAM_UPDATE_REQUEST
+    gap_evt_conn_param_update       = driver.BLE_GAP_EVT_CONN_PARAM_UPDATE
     evt_tx_complete                 = driver.BLE_EVT_TX_COMPLETE
     gattc_evt_write_rsp             = driver.BLE_GATTC_EVT_WRITE_RSP
     gattc_evt_hvx                   = driver.BLE_GATTC_EVT_HVX
@@ -893,9 +894,11 @@ class BLEDriver(object):
 
     @NordicSemiErrorCheck
     @wrapt.synchronized(api_lock)
-    def ble_gap_conn_param_reply(self, conn_handle, conn_params):
-        assert isinstance(conn_params, BLEGapConnParams), 'Invalid argument type'
-        return driver.sd_ble_gap_conn_param_update(self.rpc_adapter, conn_handle, conn_params.to_c())
+    def ble_gap_conn_param_update(self, conn_handle, conn_params):
+        assert isinstance(conn_params, (BLEGapConnParams, type(None))), 'Invalid argument type'
+        if conn_params:
+            conn_params=conn_params.to_c()
+        return driver.sd_ble_gap_conn_param_update(self.rpc_adapter, conn_handle, conn_params)
 
 
     @NordicSemiErrorCheck
