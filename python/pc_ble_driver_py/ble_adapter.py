@@ -47,12 +47,11 @@ from .exceptions import NordicSemiException
 logger  = logging.getLogger(__name__)
 
 class DbConnection(object):
-    def __init__(self, vs_uuids=None):
+    def __init__(self):
         self.services    = list()
         self.serv_disc_q = queue.Queue()
         self.char_disc_q = queue.Queue()
         self.desc_disc_q = queue.Queue()
-        self.vs_uuids = vs_uuids
 
 
     def get_char_value_handle(self, uuid):
@@ -61,9 +60,10 @@ class DbConnection(object):
         for s in self.services:
             for c in s.chars:
                 if (c.uuid.value == uuid.value) and (c.uuid.type == uuid.type):
-                    for d in c.descs:
-                        if d.uuid.value == uuid:
-                            return d.handle
+                    return c.handle_value
+                    #for d in c.descs:
+                    #    if d.uuid.value == uuid:
+                    #        return d.handle
         return None
 
 
@@ -296,9 +296,8 @@ class BLEAdapter(BLEDriverObserver):
     def conn_param_update(self, conn_handle, conn_params):
         self.driver.ble_gap_conn_param_update(conn_handle, conn_params)
 
-
     def on_gap_evt_connected(self, ble_driver, conn_handle, peer_addr, own_addr, role, conn_params):
-        self.db_conns[conn_handle]  = DbConnection(self.driver.vs_uuids)
+        self.db_conns[conn_handle]  = DbConnection()
         self.evt_sync[conn_handle]  = EvtSync(events = BLEEvtID)
         self.conn_in_progress       = False
 

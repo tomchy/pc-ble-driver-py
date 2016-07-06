@@ -487,7 +487,7 @@ class BLEUUID(object):
     def __init__(self, value, vs_uuid_base=None, uuid_type=None):
         if (vs_uuid_base is not None)\
         or (uuid_type not in [None, driver.BLE_UUID_TYPE_BLE]):
-            assert isinstance(vs_uuid_base, (list, NoneType)), 'Invalid argument type'
+            assert isinstance(vs_uuid_base, (list, type(None))), 'Invalid argument type'
             self.value  = value
             self.type   = uuid_type
             self.base   = vs_uuid_base
@@ -788,7 +788,6 @@ class BLEDriver(object):
     def __init__(self, serial_port, baud_rate=115200, auto_flash=False):
         super(BLEDriver, self).__init__()
         self.observers = list()
-        self.vs_uuids = dict()
         if auto_flash:
             try:
                 flasher = Flasher(serial_port=serial_port)
@@ -985,7 +984,6 @@ class BLEDriver(object):
                                              uuid_type)
         if err_code == driver.NRF_SUCCESS:
             uuid.type = driver.uint8_value(uuid_type)
-            self.vs_uuids[tuple(uuid.value)] = driver.uint8_value(uuid_type)
         return err_code
 
     @NordicSemiErrorCheck
@@ -1051,6 +1049,7 @@ class BLEDriver(object):
         evt_id = None
         try:
             evt_id = BLEEvtID(ble_event.header.evt_id)
+            logger.error('BLE event id: {}'.format(evt_id))
         except:
             logger.error('Invalid received BLE event id: 0x{:02X}'.format(ble_event.header.evt_id))
             return
