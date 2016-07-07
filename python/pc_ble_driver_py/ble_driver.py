@@ -115,19 +115,19 @@ def NordicSemiErrorCheck(wrapped=None, expected = driver.NRF_SUCCESS):
 
 
 class BLEEvtID(Enum):
-    gap_evt_connected               = driver.BLE_GAP_EVT_CONNECTED
-    gap_evt_disconnected            = driver.BLE_GAP_EVT_DISCONNECTED
-    gap_evt_adv_report              = driver.BLE_GAP_EVT_ADV_REPORT
-    gap_evt_timeout                 = driver.BLE_GAP_EVT_TIMEOUT
+    gap_evt_connected                 = driver.BLE_GAP_EVT_CONNECTED
+    gap_evt_disconnected              = driver.BLE_GAP_EVT_DISCONNECTED
+    gap_evt_adv_report                = driver.BLE_GAP_EVT_ADV_REPORT
+    gap_evt_timeout                   = driver.BLE_GAP_EVT_TIMEOUT
     gap_evt_conn_param_update_request = driver.BLE_GAP_EVT_CONN_PARAM_UPDATE_REQUEST
-    gap_evt_conn_param_update       = driver.BLE_GAP_EVT_CONN_PARAM_UPDATE
-    evt_tx_complete                 = driver.BLE_EVT_TX_COMPLETE
-    gattc_evt_write_rsp             = driver.BLE_GATTC_EVT_WRITE_RSP
-    gattc_evt_hvx                   = driver.BLE_GATTC_EVT_HVX
-    gattc_evt_prim_srvc_disc_rsp    = driver.BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP
-    gattc_evt_char_disc_rsp         = driver.BLE_GATTC_EVT_CHAR_DISC_RSP
-    gattc_evt_desc_disc_rsp         = driver.BLE_GATTC_EVT_DESC_DISC_RSP
-    gattc_evt_read_rsp              = driver.BLE_GATTC_EVT_READ_RSP
+    gap_evt_conn_param_update         = driver.BLE_GAP_EVT_CONN_PARAM_UPDATE
+    evt_tx_complete                   = driver.BLE_EVT_TX_COMPLETE
+    gattc_evt_write_rsp               = driver.BLE_GATTC_EVT_WRITE_RSP
+    gattc_evt_read_rsp                = driver.BLE_GATTC_EVT_READ_RSP
+    gattc_evt_hvx                     = driver.BLE_GATTC_EVT_HVX
+    gattc_evt_prim_srvc_disc_rsp      = driver.BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP
+    gattc_evt_char_disc_rsp           = driver.BLE_GATTC_EVT_CHAR_DISC_RSP
+    gattc_evt_desc_disc_rsp           = driver.BLE_GATTC_EVT_DESC_DISC_RSP
 
 
 
@@ -650,6 +650,10 @@ class BLEDriverObserver(object):
         pass
 
 
+    def on_gap_evt_conn_param_update_request(self, ble_driver, conn_handle, conn_params):
+        pass
+
+
     def on_gap_evt_timeout(self, ble_driver, conn_handle, src):
         pass
 
@@ -923,6 +927,15 @@ class BLEDriver(object):
 
     @NordicSemiErrorCheck
     @wrapt.synchronized(api_lock)
+    def ble_gap_conn_param_update(self, conn_handle, conn_params):
+        assert isinstance(conn_params, (BLEGapConnParams, NoneType)), 'Invalid argument type'
+        if conn_params:
+            conn_params=conn_params.to_c()
+        return driver.sd_ble_gap_conn_param_update(self.rpc_adapter, conn_handle, conn_params)
+
+
+    @NordicSemiErrorCheck
+    @wrapt.synchronized(api_lock)
     def ble_gap_adv_stop(self):
         return driver.sd_ble_gap_adv_stop()
 
@@ -1107,6 +1120,7 @@ class BLEDriver(object):
                                               adv_type      = adv_type,
                                               adv_data      = BLEAdvData.from_c(adv_report_evt))
 
+
             elif evt_id == BLEEvtID.gap_evt_conn_param_update_request:
                 conn_params = ble_event.evt.gap_evt.params.conn_param_update_request.conn_params
 
@@ -1115,6 +1129,7 @@ class BLEDriver(object):
                                                              conn_handle  = ble_event.evt.common_evt.conn_handle,
                                                              conn_params  = BLEGapConnParams.from_c(conn_params))
 
+                                                             
             elif evt_id == BLEEvtID.evt_tx_complete:
                 tx_complete_evt = ble_event.evt.common_evt.params.tx_complete
 
