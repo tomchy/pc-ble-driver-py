@@ -475,8 +475,8 @@ class BLEHci(Enum):
 
 class BLEUUIDBase(object):
     def __init__(self, vs_uuid_base=None, uuid_type=None):
-        assert isinstance(vs_uuid_base, (list, NoneType)), 'Invalid argument type'
-        assert isinstance(uuid_type, (int, long, NoneType)), 'Invalid argument type'
+        assert isinstance(vs_uuid_base, (list, type(None))), 'Invalid argument type'
+        assert isinstance(uuid_type, (int, type(None))), 'Invalid argument type'
         if (vs_uuid_base is None) and uuid_type is None:
             self.base   = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00,
                            0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB]
@@ -580,10 +580,10 @@ class BLECharacteristic(object):
 
 class BLEService(object):
     def __init__(self, uuid, start_handle, end_handle):
-        if uuid.type == driver.BLE_UUID_TYPE_BLE:
+        if uuid.base.type == driver.BLE_UUID_TYPE_BLE:
             logger.debug('New service uuid: {}, start handle: {}, end handle: {}'.format(uuid, start_handle, end_handle))
         else:
-            logger.debug('New VS service uuid: {} (VS_id {}), start handle: {}, end handle: {}'.format(uuid, uuid.type, start_handle, end_handle))
+            logger.debug('New VS service uuid: {} (VS_id {}), start handle: {}, end handle: {}'.format(uuid, uuid.base.type, start_handle, end_handle))
         self.uuid           = uuid
         self.start_handle   = start_handle
         self.end_handle     = end_handle
@@ -1074,7 +1074,6 @@ class BLEDriver(object):
         evt_id = None
         try:
             evt_id = BLEEvtID(ble_event.header.evt_id)
-            logger.error('BLE event id: {}'.format(evt_id))
         except:
             logger.error('Invalid received BLE event id: 0x{:02X}'.format(ble_event.header.evt_id))
             return
