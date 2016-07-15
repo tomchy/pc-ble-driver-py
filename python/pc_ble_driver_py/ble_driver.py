@@ -368,9 +368,10 @@ class BLEAdvData(object):
                 key                         = BLEAdvData.Types(ad_type)
                 ble_adv_data.records[key]   = ad_list[offset: offset + ad_len - 1]
             except ValueError:
-                logger.error('Invalid advertising data type: 0x{:02X}'.format(ad_type))
-                pass
+                if ad_len:
+                    logger.error('Invalid advertising data type: 0x{:02X}'.format(ad_type))
             except IndexError:
+
                 logger.error('Invalid advertising data: {}'.format(ad_list))
                 return ble_adv_data
             index += (ad_len + 1)
@@ -928,7 +929,7 @@ class BLEDriver(object):
     @NordicSemiErrorCheck
     @wrapt.synchronized(api_lock)
     def ble_gap_conn_param_update(self, conn_handle, conn_params):
-        assert isinstance(conn_params, (BLEGapConnParams, NoneType)), 'Invalid argument type'
+        assert isinstance(conn_params, (BLEGapConnParams, type(None))), 'Invalid argument type'
         if conn_params:
             conn_params=conn_params.to_c()
         return driver.sd_ble_gap_conn_param_update(self.rpc_adapter, conn_handle, conn_params)
