@@ -236,6 +236,7 @@ class BLEAdapter(BLEDriverObserver):
             raise NordicSemiException('CCCD not found')
 
         write_params = BLEGattcWriteParams(BLEGattWriteOperation.write_req,
+
                                            BLEGattExecWriteFlag.unused,
                                            handle,
                                            cccd_list,
@@ -243,7 +244,10 @@ class BLEAdapter(BLEDriverObserver):
 
         self.driver.ble_gattc_write(conn_handle, write_params)
         result = self.evt_sync[conn_handle].wait(evt = BLEEvtID.gattc_evt_write_rsp)
-        return result['status']
+        try:
+            return result['status']
+        except KeyError:
+            return None
 
     @NordicSemiErrorCheck(expected = BLEGattStatusCode.success)
     def enable_notification(self, conn_handle, uuid):
@@ -261,27 +265,12 @@ class BLEAdapter(BLEDriverObserver):
 
         self.driver.ble_gattc_write(conn_handle, write_params)
         result = self.evt_sync[conn_handle].wait(evt = BLEEvtID.gattc_evt_write_rsp)
-        return result['status']
+        try:
+            return result['status']
+        except KeyError:
+            return None
 
     
-    @NordicSemiErrorCheck(expected = BLEGattStatusCode.success)
-    def disable_notification(self, conn_handle, uuid):
-        cccd_list = [0, 0]
-
-        handle = self.db_conns[conn_handle].get_cccd_handle(uuid)
-        if handle == None:
-            raise NordicSemiException('CCCD not found')
-
-        write_params = BLEGattcWriteParams(BLEGattWriteOperation.write_req,
-                                           BLEGattExecWriteFlag.unused,
-                                           handle,
-                                           cccd_list,
-                                           0)
-
-        self.driver.ble_gattc_write(conn_handle, write_params)
-        result = self.evt_sync[conn_handle].wait(evt = BLEEvtID.gattc_evt_write_rsp)
-        return result['status']
-       
 
     def conn_param_update(self, conn_handle, conn_params):
         self.driver.ble_gap_conn_param_update(conn_handle, conn_params)

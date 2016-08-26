@@ -368,11 +368,10 @@ class BLEAdvData(object):
                 key                         = BLEAdvData.Types(ad_type)
                 ble_adv_data.records[key]   = ad_list[offset: offset + ad_len - 1]
             except ValueError:
-                if ad_len:
-                    logger.error('Invalid advertising data type: 0x{:02X}'.format(ad_type))
+                logger.error('Invalid advertising data type: 0x{:02X}'.format(ad_type))
             except IndexError:
-
-                logger.error('Invalid advertising data: {}'.format(ad_list))
+                if ad_len != 0:
+                    logger.error('Invalid advertising data: {}'.format(ad_list))
                 return ble_adv_data
             index += (ad_len + 1)
 
