@@ -108,7 +108,7 @@ def NordicSemiErrorCheck(wrapped=None, expected = driver.NRF_SUCCESS):
     def wrapper(wrapped, instance, args, kwargs):
         err_code = wrapped(*args, **kwargs)
         if err_code != expected:
-            raise NordicSemiException('Failed to {}. Error code: {}'.format(wrapped.__name__, err_code))
+            raise NordicSemiException('Failed to {}. Error code: {}'.format(wrapped.__name__, err_code), err_code)
 
     return wrapper(wrapped)
 
@@ -399,6 +399,8 @@ class BLEGattHVXType(Enum):
 class BLEGattStatusCode(Enum):
     success             = driver.BLE_GATT_STATUS_SUCCESS
     attribute_not_found = driver.BLE_GATT_STATUS_ATTERR_ATTRIBUTE_NOT_FOUND
+    invalid_val_len     = driver.BLE_GATT_STATUS_ATTERR_INVALID_ATT_VAL_LENGTH
+    write_not_permitted = driver.BLE_GATT_STATUS_ATTERR_WRITE_NOT_PERMITTED
 
 
 
