@@ -58,7 +58,12 @@ logger  = logging.getLogger(__name__)
 SWIG_MODULE_NAME = "pc_ble_driver"
 SHLIB_NAME = "pc_ble_driver_shared"
 
-this_dir, this_file = os.path.split(__file__)
+if getattr(sys, 'frozen', False):
+    # we are running in a bundle
+    this_dir = sys._MEIPASS
+else:
+    # we are running in a normal Python environment
+    this_dir, this_file = os.path.split(__file__)
 
 if sys.maxsize > 2**32:
     shlib_arch = 'x86_64'
@@ -939,7 +944,7 @@ class BLEDriver(object):
     @NordicSemiErrorCheck
     @wrapt.synchronized(api_lock)
     def ble_gap_adv_stop(self):
-        return driver.sd_ble_gap_adv_stop()
+        return driver.sd_ble_gap_adv_stop(self.rpc_adapter)
 
 
     @NordicSemiErrorCheck
@@ -954,7 +959,7 @@ class BLEDriver(object):
     @NordicSemiErrorCheck
     @wrapt.synchronized(api_lock)
     def ble_gap_scan_stop(self):
-        return driver.sd_ble_gap_scan_stop()
+        return driver.sd_ble_gap_scan_stop(self.rpc_adapter)
 
 
     @NordicSemiErrorCheck
@@ -1070,9 +1075,11 @@ class BLEDriver(object):
     def log_message_handler(self, adapter, severity, log_message):
         pass
 
+    def ble_evt_handler(self, adapter, ble_event):
+        self.sync_ble_evt_handler(adapter, ble_event)
 
     @wrapt.synchronized(observer_lock)
-    def ble_evt_handler(self, adapter, ble_event):
+    def sync_ble_evt_handler(self, adapter, ble_event):
         evt_id = None
         try:
             evt_id = BLEEvtID(ble_event.header.evt_id)
