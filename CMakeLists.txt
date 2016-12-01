@@ -3,6 +3,10 @@ cmake_minimum_required(VERSION 3.3)
 # Name of the project
 project (pc-ble-driver-py)
 
+# Uncomment to configure for >3.5
+#set(PYTHON_LIBRARY C:/Python35-32/libs/python35.lib)
+#set(PYTHON_INCLUDE_DIR C:/Python35-32/include)
+
 set(PC_BLE_DRIVER_PY_OUTDIR ${CMAKE_BINARY_DIR}/outdir)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PC_BLE_DRIVER_PY_OUTDIR})
@@ -27,7 +31,10 @@ include_directories(${PC_BLE_DRIVER_INCLUDE_DIR})
 find_package(SWIG REQUIRED)
 include(${SWIG_USE_FILE})
 
+# Configured for 3.4
 find_package(PythonLibs 3.4 REQUIRED)
+message(${PYTHON_INCLUDE_DIRS})
+message(${PYTHON_LIBRARIES})
 include_directories(${PYTHON_INCLUDE_PATH})
 
 foreach(SD_API_VER ${SD_API_VERS})
