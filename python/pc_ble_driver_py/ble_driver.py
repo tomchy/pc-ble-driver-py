@@ -51,14 +51,14 @@ import platform
 import imp
 import importlib
 
-from observers import *
+from .observers import *
 
 #logging.basicConfig(level=logging.DEBUG)
 logger  = logging.getLogger(__name__)
 
 driver = None
 
-import config
+from . import config
 nrf_sd_ble_api_ver = config.sd_api_ver_get()
 # Load pc_ble_driver
 SWIG_MODULE_NAME = "pc_ble_driver_sd_api_v{}".format(nrf_sd_ble_api_ver)
@@ -110,9 +110,6 @@ sys.path.append(shlib_dir)
 from . import ble_driver_types as util
 from .exceptions import NordicSemiException
 driver = importlib.import_module(SWIG_MODULE_NAME)
-
-import ble_driver_types as util
-from exceptions import NordicSemiException
 
 ATT_MTU_DEFAULT                 = driver.GATT_MTU_SIZE_DEFAULT
 

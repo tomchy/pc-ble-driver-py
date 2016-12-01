@@ -44,7 +44,7 @@ from threading  import Condition, Lock
 from .ble_driver import *
 from .exceptions import NordicSemiException
 
-from observers import *
+from .observers import *
 
 logger  = logging.getLogger(__name__)
 

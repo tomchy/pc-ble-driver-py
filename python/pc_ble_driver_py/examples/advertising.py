@@ -47,7 +47,7 @@ def init(conn_ic_id):
 
 def main(serial_port):
     print("Serial port used: {}".format(serial_port))
-    driver      = BLEDriver(serial_port=serial_port, auto_flash=True)
+    driver      = BLEDriver(serial_port=serial_port)
     observer    = TimeoutObserver()
     adv_data    = BLEAdvData(complete_local_name='Example')
 
