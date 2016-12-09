@@ -286,6 +286,16 @@ class BLEGapConnParams(object):
         self.conn_sup_timeout_ms    = conn_sup_timeout_ms
         self.slave_latency          = slave_latency
 
+    def __repr__(self):
+        return u'<BleGapConnParams Object: {} {} {} {}>'.format(self.min_conn_interval_ms,
+                                                                self.max_conn_interval_ms,
+                                                                self.conn_sup_timeout_ms,
+                                                                self.slave_latency)
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+
 
     @classmethod
     def from_c(cls, conn_params):
@@ -1279,6 +1289,14 @@ class BLEDriver(object):
                 for obs in self.observers:
                     obs.on_gap_evt_conn_sec_update(ble_driver   = self,
                                                    conn_handle  = ble_event.evt.common_evt.conn_handle)
+
+            elif evt_id == BLEEvtID.gap_evt_conn_param_update:
+                conn_params = ble_event.evt.gap_evt.params.conn_param_update.conn_params
+
+                for obs in self.observers:
+                    obs.on_gap_evt_conn_param_update(ble_driver   = self,
+                                                     conn_handle  = ble_event.evt.common_evt.conn_handle,
+                                                     conn_params  = BLEGapConnParams.from_c(conn_params))
 
             elif evt_id == BLEEvtID.evt_tx_complete:
                 tx_complete_evt = ble_event.evt.common_evt.params.tx_complete
