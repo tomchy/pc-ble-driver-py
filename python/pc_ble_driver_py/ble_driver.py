@@ -1132,15 +1132,6 @@ class BLEDriver(object):
 
     @NordicSemiErrorCheck
     @wrapt.synchronized(api_lock)
-    def ble_gattc_read(self, conn_handle, attribute_handle, offset=0):
-        return driver.sd_ble_gattc_read(self.rpc_adapter,
-                                        conn_handle, 
-                                        attribute_handle,
-                                        offset)
-
-
-    @NordicSemiErrorCheck
-    @wrapt.synchronized(api_lock)
     def ble_gattc_write(self, conn_handle, write_params):
         assert isinstance(write_params, BLEGattcWriteParams), 'Invalid argument type'
         return driver.sd_ble_gattc_write(self.rpc_adapter,
@@ -1310,16 +1301,6 @@ class BLEDriver(object):
                                                offset       = write_rsp_evt.offset,
                                                data         = util.uint8_array_to_list(write_rsp_evt.data,
                                                                                        write_rsp_evt.len))
-            elif evt_id == BLEEvtID.gattc_evt_read_rsp:
-                read_rsp_evt   = ble_event.evt.gattc_evt.params.read_rsp
-
-                for obs in self.observers:
-                    obs.on_gattc_evt_read_rsp(ble_driver  = self,
-                                              conn_handle  = ble_event.evt.gattc_evt.conn_handle,
-                                              data        = util.uint8_array_to_list(read_rsp_evt.data,
-                                                                                     read_rsp_evt.len),
-                                              offset      = read_rsp_evt.offset)
-
 
             elif evt_id == BLEEvtID.gattc_evt_read_rsp:
                 read_rsp_evt   = ble_event.evt.gattc_evt.params.read_rsp
