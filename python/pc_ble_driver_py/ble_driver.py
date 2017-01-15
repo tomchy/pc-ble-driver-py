@@ -342,7 +342,13 @@ class BLEGapAddr(object):
         addr.addr       = addr_array.cast()
         return addr
 
-
+    def __getstate__(self):
+        self.addr_type = self.addr_type.value
+        return self.__dict__
+        
+    def __setstate__(self, state):
+        self.__dict__ = state
+        self.addr_type = BLEGapAddr.Types(self.addr_type)
 
 class BLEGapSecKDist(object):
     def __init__(self, enc, id, sign, link):
@@ -468,7 +474,14 @@ class BLEAdvData(object):
         self.records = dict()
         for k in kwargs:
             self.records[BLEAdvData.Types[k]] = kwargs[k]
-
+    
+    def __getstate__(self):
+        self.records = {k.value:v for k, v in self.records.items()}
+        return self.__dict__
+        
+    def __setstate__(self, state):
+        self.__dict__ = state
+        self.records = {BLEAdvData.Types(k): v for k, v in self.records.items()}
 
     def to_c(self):
         data_list = list()
@@ -672,14 +685,24 @@ class BLEUUID(object):
             self.value  = value if isinstance(value, BLEUUID.Standard) else BLEUUID.Standard(value)
         except(ValueError):
             self.value  = value
-
-
+    
+    def __getstate__(self, state):
+        self.__dict__ = state
+        try:
+            self.value  = BLEUUID.Standard(self.value)
+        except ValueError:
+            pass
+        
+    def __getstate__(self):
+        if isinstance(self.value, BLEUUID.Standard):
+            self.value = self.value.value
+        return self.__dict__
+        
     def __str__(self):
         if isinstance(self.value, BLEUUID.Standard):
             return '0x{:02X} ({})'.format(self.value.value, self.value)
         else:
             return '0x{:02X}'.format(self.value)
-
 
     @classmethod
     def from_c(cls, uuid):
