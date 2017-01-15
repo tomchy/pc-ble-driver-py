@@ -62,30 +62,14 @@ class _CommandAck(object):
         self.exception = exception
         self.result = result
 
-class _SerBLEGapAddr(object):
-    def __init__(self, ble_gap_addr):
-        assert isinstance(ble_gap_addr, BLEGapAddr)
-        self.addr_type = ble_gap_addr.addr_type.value
-        self.addr = ble_gap_addr.addr
 
-    def deserialize(self):
-        return BLEGapAddr(BLEGapAddr.Types(self.addr_type), self.addr)
-
-class _SerBLEAdvData(object):
-    def __init__(self, ble_advdata):
-        assert isinstance(ble_advdata, BLEAdvData)
-        self.records = {k.value: v for k, v in ble_advdata.records.items()}
-            
-    def deserialize(self):
-        return BLEAdvData(**{BLEAdvData.Types(k).name: v for k, v in self.records.items()})
-            
 class _ObserverMulti(object):
     def __init__(self, event_q):
         self.event_q = event_q
     def on_gap_evt_connected(self, ble_driver, conn_handle, peer_addr, role, conn_params):
         self.event_q.put(_Event('on_gap_evt_connected', 
                                 conn_handle=conn_handle, 
-                                peer_addr=_SerBLEGapAddr(peer_addr),
+                                peer_addr=peer_addr, 
                                 role=role, 
                                 conn_params=conn_params))
 
@@ -112,10 +96,10 @@ class _ObserverMulti(object):
     def on_gap_evt_adv_report(self, ble_driver, conn_handle, peer_addr, rssi, adv_type, adv_data):
         self.event_q.put(_Event('on_gap_evt_adv_report', 
                                 conn_handle=conn_handle, 
-                                peer_addr=_SerBLEGapAddr(peer_addr), 
+                                peer_addr=peer_addr, 
                                 rssi=rssi, 
                                 adv_type=adv_type, 
-                                adv_data=_SerBLEAdvData(adv_data)))
+                                adv_data=adv_data))
 
     def on_evt_tx_complete(self, ble_driver, conn_handle, count):
         self.event_q.put(_Event('on_evt_tx_complete', 
@@ -198,21 +182,12 @@ class BLEDriverMulti(object):
         self.evthandler = threading.Thread(target=self._ble_evt_handler)
         self.evthandler.daemon = True
         self.evthandler.start()
-    
-    def deserialize_args(self, kwargs):
-        if 'peer_addr' in kwargs:
-            kwargs['peer_addr'] = kwargs['peer_addr'].deserialize()
-        if 'adv_data' in kwargs:
-            kwargs['adv_data'] = kwargs['adv_data'].deserialize()
-        if 'scan_data' in kwargs:
-            kwargs['scan_data'] = kwargs['scan_data'].deserialize()
-    
+        
     def _ble_evt_handler(self):
         while True:
             ble_evt = self.event_q.get()
             if ble_evt is None:
                 break
-            self.deserialize_args(ble_evt.kwargs)
             for obs in self.observers:
                 try:
                     func = getattr(obs, ble_evt.name)
@@ -232,19 +207,17 @@ class BLEDriverMulti(object):
             cmd = self.command_q.get()
             if cmd is None:
                 break
-            self.deserialize_args(cmd.kwargs)
             try:
                 res = methods[cmd.cmd](*cmd.args, **cmd.kwargs)
             except Exception as ex:
-                self.response_q.put(_CommandAck(exception=(ex, traceback.format_exc())))
+                self.response_q.put(_CommandAck(exception=ex))
             else:
                 self.response_q.put(_CommandAck(result=res))
             
     def _wait_for_result(self):
         ack = self.response_q.get()
         if ack.exception is not None:
-            log.error(ack.exception[1])
-            raise ack.exception[0]
+            raise ack.exception
         if ack.result is not None:
             return ack.result
     
@@ -300,12 +273,13 @@ class BLEDriverMulti(object):
         return self._wait_for_result()
 
     def ble_gap_adv_data_set(self, adv_data=BLEAdvData(), scan_data=BLEAdvData()):
-        self.command_q.put(_Command('ble_gap_adv_data_set', adv_data=_SerBLEAdvData(adv_data), scan_data=_SerBLEAdvData(scan_data)))
+        self.command_q.put(_Command('ble_gap_adv_data_set', adv_data=adv_data, scan_data=scan_data))
         return self._wait_for_result()
 
     def ble_gap_authenticate(self, conn_handle, sec_params):
         self.command_q.put(_Command('ble_gap_authenticate', conn_handle, sec_params))
         return self._wait_for_result()
+
 
     def ble_gap_sec_params_reply(self, conn_handle, sec_status, sec_params, own_keys, peer_keys):
         self.command_q.put(_Command('ble_gap_sec_params_reply', conn_handle, sec_status, sec_params, own_keys, peer_keys))
@@ -319,6 +293,7 @@ class BLEDriverMulti(object):
         self.command_q.put(_Command('ble_gattc_write', conn_handle, write_params))
         return self._wait_for_result()
 
+
     def ble_gattc_read(self, conn_handle, handle, offset):
         self.command_q.put(_Command('ble_gattc_read', conn_handle, handle, offset))
         return self._wait_for_result()
@@ -331,9 +306,11 @@ class BLEDriverMulti(object):
         self.command_q.put(_Command('ble_gattc_char_disc', conn_handle, start_handle, end_handle))
         return self._wait_for_result()
 
+
     def ble_gattc_desc_disc(self, conn_handle, start_handle, end_handle):
         self.command_q.put(_Command('ble_gattc_desc_disc', conn_handle, start_handle, end_handle))
         return self._wait_for_result()
+
 
     def ble_gattc_exchange_mtu_req(self, conn_handle):
         self.command_q.put(_Command('ble_gattc_exchange_mtu_req', conn_handle))
