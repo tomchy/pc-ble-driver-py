@@ -46,21 +46,27 @@ from pc_ble_driver_py.observers import *
 logging.basicConfig()
 log = logging.getLogger(__name__)   
 
-class _Command(object):
+class _BaseCmdEvt(object):
+    def __repr__(self):
+        return "<{} object: {}>".format(self.__class__.__name__,
+                                        self.__dict__)
+
+class _Command(_BaseCmdEvt):
     def __init__(self, cmd, *args, **kwargs):
         self.cmd = cmd
         self.args = args
         self.kwargs = kwargs
 
-class _Event(object):
+class _Event(_BaseCmdEvt):
     def __init__(self, name, **kwargs):
         self.name = name
         self.kwargs = kwargs
-        
-class _CommandAck(object):
-    def __init__(self, exception=None, result=None):
+
+class _CommandAck(_BaseCmdEvt):
+    def __init__(self, exception=None, result=None, retvals=None):
         self.exception = exception
         self.result = result
+        self.retvals = retvals
 
 
 class _ObserverMulti(object):
@@ -171,7 +177,7 @@ class BLEDriverMulti(object):
         self.serial_port = serial_port
         self.baud_rate = baud_rate
         self.auto_flash = auto_flash
-        
+
         self.command_q = multiprocessing.Queue()
         self.response_q = multiprocessing.Queue()
         self.event_q = multiprocessing.Queue()
@@ -212,8 +218,11 @@ class BLEDriverMulti(object):
             except Exception as ex:
                 self.response_q.put(_CommandAck(exception=ex))
             else:
-                self.response_q.put(_CommandAck(result=res))
-            
+                if cmd.cmd == 'ble_vs_uuid_add':
+                    self.response_q.put(_CommandAck(result=res, retvals=cmd.args[0].type))
+                else:
+                    self.response_q.put(_CommandAck(result=res))
+
     def _wait_for_result(self):
         ack = self.response_q.get()
         if ack.exception is not None:
@@ -283,11 +292,15 @@ class BLEDriverMulti(object):
 
     def ble_gap_sec_params_reply(self, conn_handle, sec_status, sec_params, own_keys, peer_keys):
         self.command_q.put(_Command('ble_gap_sec_params_reply', conn_handle, sec_status, sec_params, own_keys, peer_keys))
-        return self._wait_for_result()
         
     def ble_vs_uuid_add(self, uuid_base):
         self.command_q.put(_Command('ble_vs_uuid_add', uuid_base))
-        return self._wait_for_result()
+        ack = self.response_q.get()
+        uuid_base.type = ack.retvals
+        if ack.exception is not None:
+            raise ack.exception
+        if ack.result is not None:
+            return ack.result
 
     def ble_gattc_write(self, conn_handle, write_params):
         self.command_q.put(_Command('ble_gattc_write', conn_handle, write_params))
