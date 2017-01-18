@@ -93,6 +93,11 @@ class _ObserverMulti(object):
         self.event_q.put(_Event('on_gap_evt_conn_param_update_request', 
                                 conn_handle=conn_handle, 
                                 conn_params=conn_params))
+                                
+    def on_gap_evt_conn_param_update(self, ble_driver, conn_handle, conn_params):
+        self.event_q.put(_Event('on_gap_evt_conn_param_update', 
+                                conn_handle=conn_handle, 
+                                conn_params=conn_params))
         
     def on_gap_evt_timeout(self, ble_driver, conn_handle, src):
         self.event_q.put(_Event('on_gap_evt_timeout', 
