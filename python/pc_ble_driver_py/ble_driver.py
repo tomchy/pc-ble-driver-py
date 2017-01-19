@@ -345,7 +345,7 @@ class BLEGapAddr(object):
     def __getstate__(self):
         self.addr_type = self.addr_type.value
         return self.__dict__
-        
+
     def __setstate__(self, state):
         self.__dict__ = state
         self.addr_type = BLEGapAddr.Types(self.addr_type)
@@ -474,11 +474,11 @@ class BLEAdvData(object):
         self.records = dict()
         for k in kwargs:
             self.records[BLEAdvData.Types[k]] = kwargs[k]
-    
+
     def __getstate__(self):
         self.records = {k.value:v for k, v in self.records.items()}
         return self.__dict__
-        
+
     def __setstate__(self, state):
         self.__dict__ = state
         self.records = {BLEAdvData.Types(k): v for k, v in self.records.items()}
@@ -681,23 +681,25 @@ class BLEUUID(object):
     def __init__(self, value, base=BLEUUIDBase()):
         assert isinstance(base, BLEUUIDBase), 'Invalid argument type'
         self.base   = base
+        if isinstance(value, BLEUUID.Standard):
+            self.value = value
         try:
-            self.value  = value if isinstance(value, BLEUUID.Standard) else BLEUUID.Standard(value)
+            self.value = BLEUUID.Standard(value)
         except(ValueError):
             self.value  = value
-    
+
     def __setstate__(self, state):
-        self.__dict__ = state
         try:
-            self.value  = BLEUUID.Standard(self.value)
+            self.value  = BLEUUID.Standard(state['value'])
         except ValueError:
-            pass
-        
+            self.value = state['value']
+        self.base = state['base']
+
     def __getstate__(self):
         if isinstance(self.value, BLEUUID.Standard):
-            self.value = self.value.value
-        return self.__dict__
-        
+            return {'value': self.value.value, 'base': self.base}
+        return {'value': self.value, 'base': self.base}
+
     def __str__(self):
         if isinstance(self.value, BLEUUID.Standard):
             return '0x{:02X} ({})'.format(self.value.value, self.value)
@@ -785,7 +787,7 @@ class SerialPortDescriptor(object):
         self.location_id = location_id
         self.vendor_id = vendor_id
         self.product_id = product_id
-    
+
     @classmethod
     def to_string(cls, char_arr):
         s = util.char_array_to_list(char_arr, driver.SD_RPC_MAXPATHLEN)
@@ -833,7 +835,7 @@ class Flasher(object):
     def __init__(self, serial_port = None, snr = None):
         if serial_port is None and snr is None:
             raise NordicSemiException('Invalid Flasher initialization')
-        
+
         nrfjprog = Flasher.which(Flasher.NRFJPROG)
         if nrfjprog == None:
             nrfjprog = Flasher.which("{}.exe".format(Flasher.NRFJPROG))
@@ -896,7 +898,7 @@ class Flasher(object):
         except subprocess.CalledProcessError as e:
             if e.returncode == 18:
                 raise RuntimeError("Invalid Connectivity IC ID: {}".format(self.family))
-            else: 
+            else:
                 raise
 
 
@@ -1063,7 +1065,7 @@ class BLEDriver(object):
             conn_params = self.conn_params_setup()
         assert isinstance(conn_params, BLEGapConnParams), 'Invalid argument type'
 
-        return driver.sd_ble_gap_connect(self.rpc_adapter, 
+        return driver.sd_ble_gap_connect(self.rpc_adapter,
                                          address.to_c(),
                                          scan_params.to_c(),
                                          conn_params.to_c())
@@ -1073,7 +1075,7 @@ class BLEDriver(object):
     @wrapt.synchronized(api_lock)
     def ble_gap_disconnect(self, conn_handle, hci_status_code = BLEHci.remote_user_terminated_connection):
         assert isinstance(hci_status_code, BLEHci), 'Invalid argument type'
-        return driver.sd_ble_gap_disconnect(self.rpc_adapter, 
+        return driver.sd_ble_gap_disconnect(self.rpc_adapter,
                                             conn_handle,
                                             hci_status_code.value)
 
@@ -1395,7 +1397,7 @@ class BLEDriver(object):
 
                     elif evt_id == BLEEvtID.gattc_evt_exchange_mtu_rsp:
                         xchg_mtu_evt = ble_event.evt.gattc_evt.params.exchange_mtu_rsp
-                        _status = BLEGattStatusCode(ble_event.evt.gattc_evt.gatt_status) 
+                        _status = BLEGattStatusCode(ble_event.evt.gattc_evt.gatt_status)
                         _server_rx_mtu = 0
 
                         if _status == BLEGattStatusCode.success:
@@ -1420,5 +1422,5 @@ class BLEDriver(object):
         except Exception as e:
             logger.error("Exception: {}".format(str(e)))
             for line in traceback.extract_tb(sys.exc_info()[2]):
-                logger.error(line) 
-            logger.error("") 
+                logger.error(line)
+            logger.error("")
