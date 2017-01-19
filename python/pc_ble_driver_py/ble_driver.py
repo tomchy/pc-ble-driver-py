@@ -686,7 +686,7 @@ class BLEUUID(object):
         except(ValueError):
             self.value  = value
     
-    def __getstate__(self, state):
+    def __setstate__(self, state):
         self.__dict__ = state
         try:
             self.value  = BLEUUID.Standard(self.value)
