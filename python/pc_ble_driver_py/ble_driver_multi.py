@@ -44,7 +44,7 @@ from pc_ble_driver_py.ble_driver import *
 from pc_ble_driver_py.observers import *
 
 logging.basicConfig()
-log = logging.getLogger(__name__)   
+log = logging.getLogger(__name__)
 
 class _BaseCmdEvt(object):
     def __repr__(self):
@@ -73,110 +73,110 @@ class _ObserverMulti(object):
     def __init__(self, event_q):
         self.event_q = event_q
     def on_gap_evt_connected(self, ble_driver, conn_handle, peer_addr, role, conn_params):
-        self.event_q.put(_Event('on_gap_evt_connected', 
-                                conn_handle=conn_handle, 
-                                peer_addr=peer_addr, 
-                                role=role, 
+        self.event_q.put(_Event('on_gap_evt_connected',
+                                conn_handle=conn_handle,
+                                peer_addr=peer_addr,
+                                role=role,
                                 conn_params=conn_params))
 
     def on_gap_evt_disconnected(self, ble_driver, conn_handle, reason):
-        self.event_q.put(_Event('on_gap_evt_disconnected', 
-                                conn_handle=conn_handle, 
+        self.event_q.put(_Event('on_gap_evt_disconnected',
+                                conn_handle=conn_handle,
                                 reason=reason))
 
     def on_gap_evt_sec_params_request(self, ble_driver, conn_handle, peer_params):
-        self.event_q.put(_Event('on_gap_evt_sec_params_request', 
-                                conn_handle=conn_handle, 
+        self.event_q.put(_Event('on_gap_evt_sec_params_request',
+                                conn_handle=conn_handle,
                                 peer_params=peer_params))
 
     def on_gap_evt_conn_param_update_request(self, ble_driver, conn_handle, conn_params):
-        self.event_q.put(_Event('on_gap_evt_conn_param_update_request', 
-                                conn_handle=conn_handle, 
+        self.event_q.put(_Event('on_gap_evt_conn_param_update_request',
+                                conn_handle=conn_handle,
                                 conn_params=conn_params))
-                                
+
     def on_gap_evt_conn_param_update(self, ble_driver, conn_handle, conn_params):
-        self.event_q.put(_Event('on_gap_evt_conn_param_update', 
-                                conn_handle=conn_handle, 
+        self.event_q.put(_Event('on_gap_evt_conn_param_update',
+                                conn_handle=conn_handle,
                                 conn_params=conn_params))
-        
+
     def on_gap_evt_timeout(self, ble_driver, conn_handle, src):
-        self.event_q.put(_Event('on_gap_evt_timeout', 
-                                conn_handle=conn_handle, 
+        self.event_q.put(_Event('on_gap_evt_timeout',
+                                conn_handle=conn_handle,
                                 src=src))
 
     def on_gap_evt_adv_report(self, ble_driver, conn_handle, peer_addr, rssi, adv_type, adv_data):
-        self.event_q.put(_Event('on_gap_evt_adv_report', 
-                                conn_handle=conn_handle, 
-                                peer_addr=peer_addr, 
-                                rssi=rssi, 
-                                adv_type=adv_type, 
+        self.event_q.put(_Event('on_gap_evt_adv_report',
+                                conn_handle=conn_handle,
+                                peer_addr=peer_addr,
+                                rssi=rssi,
+                                adv_type=adv_type,
                                 adv_data=adv_data))
 
     def on_evt_tx_complete(self, ble_driver, conn_handle, count):
-        self.event_q.put(_Event('on_evt_tx_complete', 
-                                conn_handle=conn_handle, 
+        self.event_q.put(_Event('on_evt_tx_complete',
+                                conn_handle=conn_handle,
                                 count=count))
 
     def on_gattc_evt_write_rsp(self, ble_driver, conn_handle, status, error_handle, attr_handle, write_op, offset, data):
-        self.event_q.put(_Event('on_gattc_evt_write_rsp', 
-                                conn_handle=conn_handle, 
-                                status=status, 
-                                error_handle=error_handle, 
-                                attr_handle=attr_handle, 
-                                write_op=write_op, 
-                                offset=offset, 
+        self.event_q.put(_Event('on_gattc_evt_write_rsp',
+                                conn_handle=conn_handle,
+                                status=status,
+                                error_handle=error_handle,
+                                attr_handle=attr_handle,
+                                write_op=write_op,
+                                offset=offset,
                                 data=data))
 
     def on_gattc_evt_hvx(self, ble_driver, conn_handle, status, error_handle, attr_handle, hvx_type, data):
-        self.event_q.put(_Event('on_gattc_evt_hvx', 
-                                conn_handle=conn_handle, 
-                                status=status, 
-                                error_handle=error_handle, 
-                                attr_handle=attr_handle, 
-                                hvx_type=hvx_type, 
+        self.event_q.put(_Event('on_gattc_evt_hvx',
+                                conn_handle=conn_handle,
+                                status=status,
+                                error_handle=error_handle,
+                                attr_handle=attr_handle,
+                                hvx_type=hvx_type,
                                 data=data))
-        
+
     def on_gattc_evt_read_rsp(self, ble_driver, conn_handle, status, error_handle, attr_handle, offset, data):
-        self.event_q.put(_Event('on_gattc_evt_read_rsp', 
-                                conn_handle=conn_handle, 
-                                status=status, 
-                                error_handle=error_handle, 
-                                attr_handle=attr_handle, 
-                                offset=offset, 
+        self.event_q.put(_Event('on_gattc_evt_read_rsp',
+                                conn_handle=conn_handle,
+                                status=status,
+                                error_handle=error_handle,
+                                attr_handle=attr_handle,
+                                offset=offset,
                                 data=data))
 
     def on_gattc_evt_prim_srvc_disc_rsp(self, ble_driver, conn_handle, status, services):
-        self.event_q.put(_Event('on_gattc_evt_prim_srvc_disc_rsp', 
-                                conn_handle=conn_handle, 
-                                status=status, 
+        self.event_q.put(_Event('on_gattc_evt_prim_srvc_disc_rsp',
+                                conn_handle=conn_handle,
+                                status=status,
                                 services=services))
 
     def on_gattc_evt_char_disc_rsp(self, ble_driver, conn_handle, status, characteristics):
-        self.event_q.put(_Event('on_gattc_evt_char_disc_rsp', 
-                                conn_handle=conn_handle, 
-                                status=status, 
+        self.event_q.put(_Event('on_gattc_evt_char_disc_rsp',
+                                conn_handle=conn_handle,
+                                status=status,
                                 characteristics=characteristics))
 
     def on_gattc_evt_desc_disc_rsp(self, ble_driver, conn_handle, status, descriptions):
-        self.event_q.put(_Event('on_gattc_evt_desc_disc_rsp', 
-                                conn_handle=conn_handle, 
-                                status=status, 
+        self.event_q.put(_Event('on_gattc_evt_desc_disc_rsp',
+                                conn_handle=conn_handle,
+                                status=status,
                                 descriptions=descriptions))
 
     def on_gap_evt_auth_status(self, ble_driver, conn_handle, auth_status):
-        self.event_q.put(_Event('on_gap_evt_auth_status', 
-                                conn_handle=conn_handle, 
+        self.event_q.put(_Event('on_gap_evt_auth_status',
+                                conn_handle=conn_handle,
                                 auth_status=auth_status))
 
     def on_gap_evt_conn_sec_update(self, ble_driver, conn_handle):
-        self.event_q.put(_Event('on_gap_evt_conn_sec_update', 
+        self.event_q.put(_Event('on_gap_evt_conn_sec_update',
                                 conn_handle=conn_handle))
 
     def on_att_mtu_exchanged(self, ble_driver, conn_handle, att_mtu):
-        self.event_q.put(_Event('on_att_mtu_exchanged', 
-                                conn_handle=conn_handle, 
+        self.event_q.put(_Event('on_att_mtu_exchanged',
+                                conn_handle=conn_handle,
                                 att_mtu=att_mtu))
-        
+
 class BLEDriverMulti(object):
     def __init__(self, serial_port, baud_rate=115200, auto_flash=False):
         self.serial_port = serial_port
@@ -193,7 +193,7 @@ class BLEDriverMulti(object):
         self.evthandler = threading.Thread(target=self._ble_evt_handler)
         self.evthandler.daemon = True
         self.evthandler.start()
-        
+
     def _ble_evt_handler(self):
         while True:
             ble_evt = self.event_q.get()
@@ -234,11 +234,11 @@ class BLEDriverMulti(object):
             raise ack.exception
         if ack.result is not None:
             return ack.result
-    
+
     def open(self):
         self.command_q.put(_Command('open'))
         return self._wait_for_result()
-        
+
     def close(self):
         self.command_q.put(_Command('close'))
         res = self._wait_for_result()
@@ -247,7 +247,7 @@ class BLEDriverMulti(object):
         self.proc.join()
         self.evthandler.join()
         return res
-        
+
     def observer_register(self, observer):
         self.observers.append(observer)
 
@@ -294,10 +294,9 @@ class BLEDriverMulti(object):
         self.command_q.put(_Command('ble_gap_authenticate', conn_handle, sec_params))
         return self._wait_for_result()
 
-
     def ble_gap_sec_params_reply(self, conn_handle, sec_status, sec_params, own_keys, peer_keys):
         self.command_q.put(_Command('ble_gap_sec_params_reply', conn_handle, sec_status, sec_params, own_keys, peer_keys))
-        
+
     def ble_vs_uuid_add(self, uuid_base):
         self.command_q.put(_Command('ble_vs_uuid_add', uuid_base))
         ack = self.response_q.get()
@@ -311,7 +310,6 @@ class BLEDriverMulti(object):
         self.command_q.put(_Command('ble_gattc_write', conn_handle, write_params))
         return self._wait_for_result()
 
-
     def ble_gattc_read(self, conn_handle, handle, offset):
         self.command_q.put(_Command('ble_gattc_read', conn_handle, handle, offset))
         return self._wait_for_result()
@@ -324,13 +322,10 @@ class BLEDriverMulti(object):
         self.command_q.put(_Command('ble_gattc_char_disc', conn_handle, start_handle, end_handle))
         return self._wait_for_result()
 
-
     def ble_gattc_desc_disc(self, conn_handle, start_handle, end_handle):
         self.command_q.put(_Command('ble_gattc_desc_disc', conn_handle, start_handle, end_handle))
         return self._wait_for_result()
 
-
     def ble_gattc_exchange_mtu_req(self, conn_handle):
         self.command_q.put(_Command('ble_gattc_exchange_mtu_req', conn_handle))
         return self._wait_for_result()
-        
