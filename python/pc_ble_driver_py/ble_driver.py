@@ -689,10 +689,8 @@ class BLEUUID(object):
     def __init__(self, value, base=BLEUUIDBase()):
         assert isinstance(base, BLEUUIDBase), 'Invalid argument type'
         self.base   = base
-        if isinstance(value, BLEUUID.Standard):
-            self.value = value
         try:
-            self.value = BLEUUID.Standard(value)
+            self.value = value if isinstance(value, BLEUUID.Standard) else BLEUUID.Standard(value)
         except(ValueError):
             self.value  = value
 
