@@ -296,6 +296,7 @@ class BLEDriverMulti(object):
 
     def ble_gap_sec_params_reply(self, conn_handle, sec_status, sec_params, own_keys, peer_keys):
         self.command_q.put(_Command('ble_gap_sec_params_reply', conn_handle, sec_status, sec_params, own_keys, peer_keys))
+        return self._wait_for_result()
 
     def ble_vs_uuid_add(self, uuid_base):
         self.command_q.put(_Command('ble_vs_uuid_add', uuid_base))
