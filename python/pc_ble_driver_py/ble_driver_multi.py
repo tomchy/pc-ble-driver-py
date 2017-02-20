@@ -112,6 +112,10 @@ class _ObserverMulti(object):
                                 adv_type=adv_type,
                                 adv_data=adv_data))
 
+    def on_evt_data_length_changed(self, ble_driver, conn_handle):
+        self.event_q.put(_Event('on_evt_data_length_changed',
+                                conn_handle=conn_handle))
+
     def on_evt_tx_complete(self, ble_driver, conn_handle, count):
         self.event_q.put(_Event('on_evt_tx_complete',
                                 conn_handle=conn_handle,
@@ -171,6 +175,12 @@ class _ObserverMulti(object):
     def on_gap_evt_conn_sec_update(self, ble_driver, conn_handle):
         self.event_q.put(_Event('on_gap_evt_conn_sec_update',
                                 conn_handle=conn_handle))
+
+    def on_gattc_evt_exchange_mtu_rsp(self, ble_driver,conn_handle,status,att_mtu):
+        self.event_q.put(_Event('on_gattc_evt_exchange_mtu_rsp',
+                                conn_handle=conn_handle,
+                                status=status,
+                                att_mtu=att_mtu))
 
     def on_att_mtu_exchanged(self, ble_driver, conn_handle, att_mtu):
         self.event_q.put(_Event('on_att_mtu_exchanged',
