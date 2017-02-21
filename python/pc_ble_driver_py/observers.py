@@ -93,7 +93,7 @@ class BLEDriverObserver(object):
     def on_gap_evt_conn_sec_update(self, ble_driver, conn_handle):
         pass
 
-     def on_gattc_evt_exchange_mtu_rsp(self, ble_driver,conn_handle,status,att_mtu):
+    def on_gattc_evt_exchange_mtu_rsp(self, ble_driver,conn_handle,status,att_mtu):
         pass
 
     def on_att_mtu_exchanged(self, ble_driver, conn_handle, att_mtu):
