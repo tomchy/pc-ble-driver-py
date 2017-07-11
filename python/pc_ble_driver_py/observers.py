@@ -54,6 +54,12 @@ class BLEDriverObserver(object):
     def on_gap_evt_conn_param_update(self, ble_driver, conn_handle, conn_params):
         pass
 
+    def on_gap_evt_sec_info_request(self, ble_driver, conn_handle, peer_addr, master_id, enc_info, id_info, sign_info):
+        pass
+
+    def on_gap_evt_sec_request(self, ble_driver, conn_handle, bond, mitm, lesc, keypress):
+        pass
+
     def on_gap_evt_conn_param_update_request(self, ble_driver, conn_handle, conn_params):
         pass
 
@@ -61,6 +67,12 @@ class BLEDriverObserver(object):
         pass
 
     def on_gap_evt_adv_report(self, ble_driver, conn_handle, peer_addr, rssi, adv_type, adv_data):
+        pass
+
+    def on_gap_evt_auth_status(self, ble_driver, conn_handle, auth_status):
+        pass
+
+    def on_gap_evt_conn_sec_update(self, ble_driver, conn_handle):
         pass
 
     def on_evt_tx_complete(self, ble_driver, conn_handle, count):
@@ -87,10 +99,10 @@ class BLEDriverObserver(object):
     def on_gattc_evt_desc_disc_rsp(self, ble_driver, conn_handle, status, descriptions):
         pass
 
-    def on_gap_evt_auth_status(self, ble_driver, conn_handle, auth_status):
+    def on_gatts_evt_hvc(self, ble_driver, status, error_handle, attr_handle):
         pass
 
-    def on_gap_evt_conn_sec_update(self, ble_driver, conn_handle):
+    def on_gatts_evt_write(self, ble_driver, conn_handle, attr_handle, uuid, op, auth_required, offset, length, data):
         pass
 
     def on_gattc_evt_exchange_mtu_rsp(self, ble_driver,conn_handle,status,att_mtu):
