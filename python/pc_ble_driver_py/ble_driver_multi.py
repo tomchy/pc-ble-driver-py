@@ -320,6 +320,10 @@ class BLEDriverMulti(object):
     def ble_gattc_write(self, conn_handle, write_params):
         self.command_q.put(_Command('ble_gattc_write', conn_handle, write_params))
         return self._wait_for_result()
+        
+    def ble_gattc_hv_confirm(self, conn_handle, handle):
+        self.command_q.put(_Command('ble_gattc_hv_confirm', conn_handle, handle))
+        return self._wait_for_result()
 
     def ble_gattc_read(self, conn_handle, handle, offset):
         self.command_q.put(_Command('ble_gattc_read', conn_handle, handle, offset))
