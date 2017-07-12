@@ -232,21 +232,22 @@ class BLEAdapter(BLEDriverObserver):
     @NordicSemiErrorCheck(expected = BLEGattStatusCode.success)
     def disable_notification(self, conn_handle, uuid):
         cccd_list = [0, 0]
-        return _gattc_hvx_write(cccd_list, conn_handle, uuid)
+        return self._gattc_hvx_write(cccd_list, conn_handle, uuid)
     
     @NordicSemiErrorCheck(expected = BLEGattStatusCode.success)
     def disable_indication(self, conn_handle, uuid):
-        return disable_notification(conn_handle, uuid)
+        cccd_list = [0, 0]
+        return self._gattc_hvx_write(cccd_list, conn_handle, uuid)
     
     @NordicSemiErrorCheck(expected = BLEGattStatusCode.success)
     def enable_notification(self, conn_handle, uuid):
         cccd_list = [1, 0]
-        return _gattc_hvx_write(cccd_list, conn_handle, uuid)
+        return self._gattc_hvx_write(cccd_list, conn_handle, uuid)
     
     @NordicSemiErrorCheck(expected = BLEGattStatusCode.success)
     def enable_indication(self, conn_handle, uuid):
         cccd_list = [2, 0]
-        return _gattc_hvx_write(cccd_list, conn_handle, uuid)
+        return self._gattc_hvx_write(cccd_list, conn_handle, uuid)
     
     def _gattc_hvx_write(cccd_list, conn_handle, uuid):
         handle = self.db_conns[conn_handle].get_cccd_handle(uuid)
