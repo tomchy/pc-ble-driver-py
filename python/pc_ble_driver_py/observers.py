@@ -117,7 +117,10 @@ class BLEAdapterObserver(object):
 
     def on_notification(self, ble_adapter, conn_handle, uuid, data):
         pass
-
+    
+    def on_indication(self, ble_adapter, conn_handle, uuid, data):
+        pass
+        
     def on_conn_param_update_request(self, ble_adapter, conn_handle, conn_params):
         # Default behaviour is to accept connection parameter update
         ble_adapter.conn_param_update(conn_handle, conn_params)

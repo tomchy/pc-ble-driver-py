@@ -1276,6 +1276,13 @@ class BLEDriver(object):
 
     @NordicSemiErrorCheck
     @wrapt.synchronized(api_lock)
+    def ble_gattc_hv_confirm(self, conn_handle, handle):
+        return driver.sd_ble_gattc_hv_confirm(self.rpc_adapter,
+                                              conn_handle,
+                                              handle)
+
+    @NordicSemiErrorCheck
+    @wrapt.synchronized(api_lock)
     def ble_gattc_prim_srvc_disc(self, conn_handle, srvc_uuid, start_handle):
         assert isinstance(srvc_uuid, (BLEUUID, type(None))), 'Invalid argument type'
         return driver.sd_ble_gattc_primary_services_discover(self.rpc_adapter,
