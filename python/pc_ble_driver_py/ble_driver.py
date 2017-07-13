@@ -1178,7 +1178,7 @@ class BLEDriver(object):
     @NordicSemiErrorCheck
     @wrapt.synchronized(api_lock)
     def ble_gap_authenticate(self, conn_handle, sec_params):
-        assert isinstance(sec_params, (BLEGapSecParams, NoneType)), 'Invalid argument type'
+        assert isinstance(sec_params, (BLEGapSecParams, type(None))), 'Invalid argument type'
         return driver.sd_ble_gap_authenticate(self.rpc_adapter,
                                               conn_handle,
                                               sec_params.to_c() if sec_params else None)
@@ -1188,9 +1188,9 @@ class BLEDriver(object):
     @wrapt.synchronized(api_lock)
     def ble_gap_sec_params_reply(self, conn_handle, sec_status, sec_params, own_keys, peer_keys):
         assert isinstance(sec_status, BLEGapSecStatus),             'Invalid argument type'
-        assert isinstance(sec_params, (BLEGapSecParams, NoneType)), 'Invalid argument type'
-        assert isinstance(own_keys,   NoneType),                    'NOT IMPLEMENTED'
-        assert isinstance(peer_keys,  NoneType),                    'NOT IMPLEMENTED'
+        assert isinstance(sec_params, (BLEGapSecParams, type(None))), 'Invalid argument type'
+        assert isinstance(own_keys,   type(None)),                    'NOT IMPLEMENTED'
+        assert isinstance(peer_keys,  type(None)),                    'NOT IMPLEMENTED'
 
         keyset                      = driver.ble_gap_sec_keyset_t()
 
