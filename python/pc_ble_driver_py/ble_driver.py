@@ -1458,7 +1458,10 @@ class BLEDriver(object):
 
                 for obs in self.observers:
                     obs.on_gap_evt_conn_sec_update(ble_driver   = self,
-                                                   conn_handle  = ble_event.evt.common_evt.conn_handle)
+                                                   conn_handle  = ble_event.evt.common_evt.conn_handle,
+                                                   sec_lvl  = conn_sec_update_evt.conn_sec.sec_mode.lv,
+                                                   sec_mode = conn_sec_update_evt.conn_sec.sec_mode.sm,
+                                                   encr_key_size = conn_sec_update_evt.conn_sec.encr_key_size)
 
             elif evt_id == BLEEvtID.gap_evt_conn_param_update:
                 conn_params = ble_event.evt.gap_evt.params.conn_param_update.conn_params
