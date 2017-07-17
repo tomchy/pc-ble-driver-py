@@ -172,9 +172,12 @@ class _ObserverMulti(object):
                                 conn_handle=conn_handle,
                                 auth_status=auth_status))
 
-    def on_gap_evt_conn_sec_update(self, ble_driver, conn_handle):
+    def on_gap_evt_conn_sec_update(self, ble_driver, conn_handle, sec_lvl, sec_mode, encr_key_size):
         self.event_q.put(_Event('on_gap_evt_conn_sec_update',
-                                conn_handle=conn_handle))
+                                conn_handle=conn_handle,
+                                sec_lvl=sec_lvl,
+                                sec_mode=sec_mode,
+                                encr_key_size=encr_key_size))
 
     def on_gattc_evt_exchange_mtu_rsp(self, ble_driver,conn_handle,status,att_mtu):
         self.event_q.put(_Event('on_gattc_evt_exchange_mtu_rsp',
