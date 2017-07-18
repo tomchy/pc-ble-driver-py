@@ -230,27 +230,27 @@ class BLEAdapter(BLEDriverObserver):
 
 
     @NordicSemiErrorCheck(expected = BLEGattStatusCode.success)
-    def disable_notification(self, conn_handle, uuid):
+    def disable_notification(self, conn_handle, uuid, handle=None):
         cccd_list = [0, 0]
-        return self._gattc_hvx_write(cccd_list, conn_handle, uuid)
+        return self._gattc_hvx_write(cccd_list, conn_handle, uuid, handle=handle)
     
     @NordicSemiErrorCheck(expected = BLEGattStatusCode.success)
     def disable_indication(self, conn_handle, uuid):
-        cccd_list = [0, 0]
-        return self._gattc_hvx_write(cccd_list, conn_handle, uuid)
+        return self.disable_notification(conn_handle, uuid)
     
     @NordicSemiErrorCheck(expected = BLEGattStatusCode.success)
-    def enable_notification(self, conn_handle, uuid):
+    def enable_notification(self, conn_handle, uuid, handle=None):
         cccd_list = [1, 0]
-        return self._gattc_hvx_write(cccd_list, conn_handle, uuid)
+        return self._gattc_hvx_write(cccd_list, conn_handle, uuid, handle=handle)
     
     @NordicSemiErrorCheck(expected = BLEGattStatusCode.success)
-    def enable_indication(self, conn_handle, uuid):
+    def enable_indication(self, conn_handle, uuid, handle=None):
         cccd_list = [2, 0]
-        return self._gattc_hvx_write(cccd_list, conn_handle, uuid)
+        return self._gattc_hvx_write(cccd_list, conn_handle, uuid, handle=handle)
     
-    def _gattc_hvx_write(cccd_list, conn_handle, uuid):
-        handle = self.db_conns[conn_handle].get_cccd_handle(uuid)
+    def _gattc_hvx_write(self, cccd_list, conn_handle, uuid, handle=None):
+        if handle is None:
+            handle = self.db_conns[conn_handle].get_cccd_handle(uuid)
         if handle == None:
             raise NordicSemiException('CCCD not found')
 
@@ -322,8 +322,9 @@ class BLEAdapter(BLEDriverObserver):
         else:
              return (gatt_res, None)
 
-    def write_cmd(self, conn_handle, uuid, data):
-        handle = self.db_conns[conn_handle].get_char_value_handle(uuid)
+    def write_cmd(self, conn_handle, uuid, data, handle=None):
+        if handle is None:
+            handle = self.db_conns[conn_handle].get_char_value_handle(uuid)
         if handle == None:
             raise NordicSemiException('Characteristic value handler not found')
         write_params = BLEGattcWriteParams(BLEGattWriteOperation.write_cmd,
