@@ -40,7 +40,7 @@ import time
 from queue import Queue
 from pc_ble_driver_py.observers import *
 
-TARGET_DEV_NAME = "Nordic_HRM"
+TARGET_DEV_NAME = "BLETester_HRM"
 CONNECTIONS = 1
 
 
@@ -83,9 +83,9 @@ class HRCollector(BLEDriverObserver, BLEAdapterObserver):
         new_conn = self.conn_q.get(timeout=5)
         self.adapter.service_discovery(new_conn)
 
-        self.adapter.enable_notification(new_conn, BLEUUID(BLEUUID.Standard.battery_level))
+        self.adapter.enable_indication(new_conn, BLEUUID(BLEUUID.Standard.battery_level))
         self.adapter.enable_notification(new_conn, BLEUUID(BLEUUID.Standard.heart_rate))
-        
+
         return new_conn
 
     def on_gap_evt_connected(self, ble_driver, conn_handle, peer_addr, role, conn_params):
@@ -123,6 +123,11 @@ class HRCollector(BLEDriverObserver, BLEAdapterObserver):
             data = "({}...)".format(data[0:10])
         print('Connection: {}, {} = {}'.format(conn_handle, uuid, data))
 
+    def on_indication(self, ble_adapter, conn_handle, uuid, data):
+        if len(data) > 32:
+            data = "({}...)".format(data[0:10])
+        print('Connection: {}, {} = {}'.format(conn_handle, uuid, data))
+
     def on_gap_evt_data_length_update_request(self, ble_driver, conn_handle, data_length_params):
         ble_driver.ble_gap_data_length_update(conn_handle, None, None)
 
@@ -132,13 +137,13 @@ class HRCollector(BLEDriverObserver, BLEAdapterObserver):
 
 def main(serial_port):
     print('Serial port used: {}'.format(serial_port))
-    driver = BLEDriver(serial_port=serial_port, auto_flash=False, baud_rate=1000000)
+    driver = BLEDriver(serial_port=serial_port, auto_flash=True, baud_rate=1000000)
     adapter = BLEAdapter(driver)
     collector = HRCollector(adapter)
     collector.open()
     for i in range(CONNECTIONS):
         collector.connect_and_discover()
-    time.sleep(10)
+    time.sleep(5)
     print('Closing')
     collector.close()
 
